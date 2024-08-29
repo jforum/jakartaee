@@ -43,7 +43,6 @@
 package net.jforum.view.admin;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import net.jforum.SessionFacade;
@@ -70,53 +69,53 @@ import net.jforum.view.forum.common.ViewCommon;
 public class UserAction extends AdminCommand 
 {
 	private static final String USERS = "users";
-	private static final String USER_ID = "user_id";	
-	
+	private static final String USER_ID = "user_id";
+
 	private final UserDAO userDao = DataAccessDriver.getInstance().newUserDAO();
 	private final GroupDAO groupDao = DataAccessDriver.getInstance().newGroupDAO();
 	private final ModerationLogDAO modLogDao = DataAccessDriver.getInstance().newModerationLogDAO();
-	
+
 	@Override public void list()
 	{
 		final int start = this.preparePagination(userDao.getTotalUsers());
 		final int usersPerPage = SystemGlobals.getIntValue(ConfigKeys.USERS_PER_PAGE);
-		
+
 		this.context.put(USERS, userDao.selectAll(start ,usersPerPage));
 		this.commonData();
 	}
-	
+
 	public void pendingActivations()
 	{
 		final List<User> users = userDao.pendingActivations();
-		
+
 		this.setTemplateName(TemplateKeys.USER_ADMIN_PENDING_ACTIVATIONS);
 		this.context.put(USERS, users);
 	}
-	
+
 	public void activateAccount()
 	{
 		final String[] ids = this.request.getParameterValues(USER_ID);
-		
-		if (ids != null) {			
+
+		if (ids != null) {
 			for (int i = 0; i < ids.length; i++) {
 				final int userId = Integer.parseInt(ids[i]);
 				userDao.writeUserActive(userId);
 			}
 		}
-		
+
 		this.pendingActivations();
 	}
-	
+
 	private int preparePagination(final int totalUsers)
 	{
 		final int start = ViewCommon.getStartPage();
 		final int usersPerPage = SystemGlobals.getIntValue(ConfigKeys.USERS_PER_PAGE);
-		
+
 		ViewCommon.contextToPagination(start, totalUsers, usersPerPage);
-		
+
 		return start;
 	}
-	
+
 	private void commonData()
 	{
 		this.context.put("selectedList", new ArrayList<User>());
@@ -126,7 +125,7 @@ public class UserAction extends AdminCommand
 		this.context.put("searchId", Integer.valueOf(-1));
 		this.context.put("action", "list");
 	}
-	
+
 	public void groupSearch()
 	{
 		final int groupId = this.request.getIntParameter("group_id");
@@ -134,22 +133,22 @@ public class UserAction extends AdminCommand
 			this.list();
 			return;
 		}
-	
+
 		final int start = this.preparePagination(userDao.getTotalUsersByGroup(groupId));
 		final int usersPerPage = SystemGlobals.getIntValue(ConfigKeys.USERS_PER_PAGE);
-		
+
 		this.commonData();
-		
+
 		final List<Integer> list = new ArrayList<>();
 		list.add(Integer.valueOf(groupId));
-		
+
 		this.context.put("selectedList", list);
 		this.context.put("searchAction", "groupSearch");
 		this.context.put(USERS, userDao.selectAllByGroup(groupId, start, usersPerPage));
 		this.context.put("searchId", Integer.valueOf(groupId));
 		this.context.put("action", "groupSearch");
 	}
-	
+
 	public void search()
 	{
 		final String group = this.request.getParameter("group_id");
@@ -252,12 +251,12 @@ public class UserAction extends AdminCommand
 
 	public void edit()
 	{
-		final int userId = this.request.getIntParameter("id");	
+		final int userId = this.request.getIntParameter("id");
 		final User user = userDao.selectById(userId);
-		
+
 		this.setTemplateName(TemplateKeys.USER_ADMIN_EDIT);
 		this.context.put("u", user);
-		this.context.put("action", "editSave");		
+		this.context.put("action", "editSave");
 		this.context.put("specialRanks", DataAccessDriver.getInstance().newRankingDAO().selectSpecials());
 		this.context.put("avatarAllowExternalUrl", SystemGlobals.getBoolValue(ConfigKeys.AVATAR_ALLOW_EXTERNAL_URL));
 		this.context.put("avatarPath", SystemGlobals.getValue(ConfigKeys.AVATAR_IMAGE_DIR));
@@ -308,19 +307,19 @@ public class UserAction extends AdminCommand
 
 		this.list();
 	}
-	
+
 	// Groups
 	public void groups()
 	{
 		int userId = this.request.getIntParameter("id");
-		
+
 		User user = userDao.selectById(userId);
-		
+
 		List<Integer> selectedList = new ArrayList<>();
-		for (Iterator<Group> iter = user.getGroupsList().iterator(); iter.hasNext(); ) {
-			selectedList.add(Integer.valueOf(iter.next().getId()));
+		for (Group group : user.getGroupsList()) {
+			selectedList.add(Integer.valueOf(group.getId()));
 		}
-		
+
 		this.context.put("selectedList", selectedList);
 		this.context.put("groups", new TreeGroup().getNodes());
 		this.context.put("user", user);
@@ -328,41 +327,40 @@ public class UserAction extends AdminCommand
 		this.setTemplateName(TemplateKeys.USER_ADMIN_GROUPS);
 		this.context.put("groupFor", I18n.getMessage("User.GroupsFor", new String[] { user.getUsername() }));
 	}
-	
+
 	// Groups Save
 	public void groupsSave()
 	{
 		int userId = this.request.getIntParameter(USER_ID);
-		
+
 		// Remove the old groups
 		List<Group> allGroupsList = groupDao.selectAll();
 		int[] allGroups = new int[allGroupsList.size()];
-		
+
 		int counter = 0;
-		for (Iterator<Group> iter = allGroupsList.iterator(); iter.hasNext(); counter++) {
-			Group group = iter.next();
-			
+		for (Group group : allGroupsList) {
 			allGroups[counter] = group.getId();
+			counter++;
 		}
-		
+
 		userDao.removeFromGroup(userId, allGroups);
-		
+
 		// Associate the user to the selected groups
 		String[] selectedGroups = this.request.getParameterValues("groups");
-		
+
 		if(selectedGroups == null) {
 			selectedGroups = new String[0]; 
 		}
-		
+
 		int[] newGroups = new int[selectedGroups.length];
-		
+
 		for (int i = 0; i < selectedGroups.length; i++) {
 			newGroups[i] = Integer.parseInt(selectedGroups[i]);
 		}
-		
+
 		userDao.addToGroup(userId, newGroups);
 		SecurityRepository.remove(userId);
-		
+
 		this.list();
 	}
 }

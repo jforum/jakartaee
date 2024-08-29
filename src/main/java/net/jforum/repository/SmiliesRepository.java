@@ -42,7 +42,6 @@
  */
 package net.jforum.repository;
 
-import java.util.Iterator;
 import java.util.List;
 
 import net.jforum.cache.CacheEngine;
@@ -101,8 +100,7 @@ public class SmiliesRepository implements Cacheable
                 forumLink = forumLink.substring(0, forumLink.length() -1);
             }
 			
-			for (final Iterator<Smilie> iter = list.iterator(); iter.hasNext(); ) {
-				final Smilie smilie = iter.next();
+			for (Smilie smilie : list) {
 				smilie.setUrl(smilie.getUrl().replaceAll("#CONTEXT#", forumLink).replaceAll("\\\\", ""));
 			}
 			

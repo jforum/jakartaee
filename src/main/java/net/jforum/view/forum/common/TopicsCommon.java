@@ -43,11 +43,13 @@
 package net.jforum.view.forum.common;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
 import freemarker.template.SimpleHash;
+
+import org.apache.log4j.Logger;
+
 import net.jforum.JForumExecutionContext;
 import net.jforum.SessionFacade;
 import net.jforum.dao.DataAccessDriver;
@@ -80,6 +82,8 @@ import net.jforum.view.forum.ModerationHelper;
  */
 public class TopicsCommon 
 {
+	private static final Logger LOGGER = Logger.getLogger(TopicsCommon.class);
+
 	private static final Object MUTEXT = new Object();
 
 	/**
@@ -150,9 +154,7 @@ public class TopicsCommon
 		boolean checkUnread = (userSession.getUserId() 
 			!= SystemGlobals.getIntValue(ConfigKeys.ANONYMOUS_USER_ID));
 
-		for (Iterator<Topic> iter = topics.iterator(); iter.hasNext(); ) {
-			Topic topic = iter.next();
-
+		for (Topic topic : topics) {
 			boolean read = false;
 			boolean isReadByForum = false;
 			long lastPostTime = topic.getLastPostDate().getTime();

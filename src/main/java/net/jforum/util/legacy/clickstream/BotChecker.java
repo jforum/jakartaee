@@ -1,6 +1,5 @@
 package net.jforum.util.legacy.clickstream;
 
-import java.util.Iterator;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
@@ -38,9 +37,7 @@ public class BotChecker
 
 			userAgent = userAgent.toLowerCase();
 
-			for (Iterator<String> iterator = agents.iterator(); iterator.hasNext(); ) {
-				String agent = iterator.next();
-
+			for (String agent : agents) {
 				if (agent == null) {
 					continue;
 				}
@@ -58,9 +55,7 @@ public class BotChecker
 
 			remoteHost = remoteHost.toLowerCase();
 
-			for (Iterator<String> iterator = hosts.iterator(); iterator.hasNext(); ) {
-				String host = iterator.next();
-
+			for (String host : hosts) {
 				if (host == null) {
 					continue;
 				}

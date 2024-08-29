@@ -46,7 +46,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.Iterator;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -62,7 +61,6 @@ import net.jforum.util.preferences.SystemGlobals;
 
 /**
  * @author Rafael Steil
- * @version $Id$
  */
 public class SecurityCommon
 {
@@ -127,8 +125,8 @@ public class SecurityCommon
 				pstmt = JForumExecutionContext.getConnection().prepareStatement(
 						SystemGlobals.getSql("PermissionControl.addRoleValues"));
 
-				for (Iterator<?> iter = roleValues.iterator(); iter.hasNext();) {
-					RoleValue rv = (RoleValue) iter.next();
+				for (Object obj : roleValues) {
+					RoleValue rv = (RoleValue) obj;
 
 					pstmt.setInt(1, roleId);
 					pstmt.setString(2, rv.getValue());

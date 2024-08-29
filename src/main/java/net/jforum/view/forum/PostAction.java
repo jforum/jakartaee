@@ -101,6 +101,7 @@ import net.jforum.view.forum.common.TopicsCommon;
 import net.jforum.view.forum.common.ViewCommon;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.log4j.Logger;
 
 import freemarker.template.SimpleHash;
 
@@ -109,6 +110,8 @@ import freemarker.template.SimpleHash;
  */
 public class PostAction extends Command 
 {
+	private static final Logger LOGGER = Logger.getLogger(PostAction.class);
+
     public PostAction() {
 	}
 
@@ -235,9 +238,8 @@ public class PostAction extends Command
 		this.context.put("showOnline", SystemGlobals.getBoolValue(ConfigKeys.ONLINE_SHOW));
 
 		Map<Integer, User> topicPosters = topicDao.topicPosters(topic.getId());
-
-		for (Iterator<User> iter = topicPosters.values().iterator(); iter.hasNext(); ) {
-			ViewCommon.prepareUserSignature(iter.next());
+		for (User user : topicPosters.values()) {
+			ViewCommon.prepareUserSignature(user);
 		}
 
 		this.context.put("users", topicPosters);
@@ -983,6 +985,7 @@ public class PostAction extends Command
 
 		if (!this.anonymousPost(forumId) || !TopicsCommon.isTopicAccessible(forumId)
 				|| this.isForumReadonly(forumId, newTopic)) {
+			//LOGGER.info(String.format("insertSave anon=%b acc=%b ro=%b", anonymousPost(forumId), TopicsCommon.isTopicAccessible(forumId), isForumReadonly(forumId, newTopic)));
 			return;
 		}
 

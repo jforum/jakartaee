@@ -42,22 +42,18 @@
  */
 package net.jforum.view.admin.common;
 
-import java.util.Iterator;
-
 import net.jforum.dao.DataAccessDriver;
 import net.jforum.entities.Category;
 import net.jforum.entities.Forum;
 
 /**
  * @author Rafael Steil
- * @version $Id$
  */
 public class ModerationCommon
 {
 	public void setForumsModerationStatus(final Category category, final boolean status)
 	{
-		for (final Iterator<Forum> iter = category.getForums().iterator(); iter.hasNext(); ) {
-			final Forum forum = iter.next();
+		for (Forum forum : category.getForums()) {
 			if (forum.isModerated() != category.isModerated()) {
 				forum.setModerated(category.isModerated());
 				this.setTopicModerationStatus(forum.getId(), category.isModerated());

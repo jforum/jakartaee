@@ -45,7 +45,6 @@ package net.jforum.search;
 
 import java.io.IOException;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.List;
 
 import org.apache.log4j.Logger;
@@ -137,7 +136,7 @@ public class LuceneReindexer
 					JForumExecutionContext ex = JForumExecutionContext.get();
 					JForumExecutionContext.set(ex);
 
-					List<Post> l = dao.getPostsToIndex(firstPostId, toPostId);
+					List<Post> listOfPosts = dao.getPostsToIndex(firstPostId, toPostId);
 
 					if (counter >= 1000) {
 						long end = System.currentTimeMillis();
@@ -150,13 +149,11 @@ public class LuceneReindexer
 					JForumExecutionContext.finish();
 					contextFinished = true;
 
-					for (Iterator<Post> iter = l.iterator(); iter.hasNext(); ) {
+					for (Post post : listOfPosts) {
 						if ("0".equals(SystemGlobals.getValue(ConfigKeys.LUCENE_CURRENTLY_INDEXING))) {
 							hasMorePosts = false;						    
 							break;
 						}
-
-						Post post = iter.next();
 
 						if (!args.recreate() && args.avoidDuplicatedRecords()) {
 							if (luceneSearch.findDocumentByPostId(post.getId()) != null) {

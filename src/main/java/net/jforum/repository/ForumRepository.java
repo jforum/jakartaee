@@ -286,7 +286,7 @@ public class ForumRepository implements Cacheable
 	private static Category findCategoryByOrder(final int order)
 	{
 		Category category = null;
-		for (final Iterator<Category> iter = ((Set<Category>)cache.get(FQN, CATEGORIES_SET)).iterator(); iter.hasNext(); ) {
+		for (Iterator<Category> iter = ((Set<Category>)cache.get(FQN, CATEGORIES_SET)).iterator(); iter.hasNext(); ) {
 			category = iter.next();
 			if (category.getOrder() == order) {
 				break;
@@ -396,8 +396,7 @@ public class ForumRepository implements Cacheable
 			relation = new ConcurrentHashMap<>();
 		}
 
-		for (final Iterator<Forum> iter = category.getForums().iterator(); iter.hasNext(); ) {
-			final Forum forum = iter.next();
+		for (Forum forum : category.getForums()) {
 			relation.put(Integer.toString(forum.getId()), categoryId);
 		}
 
@@ -722,9 +721,7 @@ public class ForumRepository implements Cacheable
 		Category category = null;
 		String catId = null;
 
-		for (Iterator<Forum> iter = list.iterator(); iter.hasNext(); ) {
-			Forum forum = iter.next();
-
+		for (Forum forum : list) {
 			if (forum.getCategoryId() != lastId) {
 				if (category != null) {
 					cache.add(FQN, catId, category);
@@ -767,9 +764,7 @@ public class ForumRepository implements Cacheable
 		List<Category> categories = cm.selectAll();
 		Set<Category> categoriesSet = new TreeSet<>(new CategoryOrderComparator());
 
-		for (Iterator<Category> iter = categories.iterator(); iter.hasNext(); ) {
-			Category category = iter.next();
-
+		for (Category category : categories) {
 			cache.add(FQN, Integer.toString(category.getId()), category);
 			categoriesSet.add(category);
 		}
@@ -784,12 +779,10 @@ public class ForumRepository implements Cacheable
 
 		List<Category> allCategories = ForumRepository.getAllCategories();
 
-		for (Iterator<Category> iter = allCategories.iterator(); iter.hasNext(); ) {
-			Collection<Forum> forums = iter.next().getForums();
+		for (Category cat : allCategories) {
+			Collection<Forum> forums = cat.getForums();
 
-			for (Iterator<Forum> tmpIterator = forums.iterator(); tmpIterator.hasNext(); ) {
-				Forum forum = tmpIterator.next();
-
+			for (Forum forum : forums) {
 				if (ForumRepository.isForumAccessible(forum.getId())) {
 					if(n++ > 0) {
 						buf.append(',');

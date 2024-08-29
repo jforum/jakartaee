@@ -43,7 +43,6 @@
 package net.jforum.entities;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import net.jforum.view.forum.common.PostCommon;
@@ -121,10 +120,9 @@ public class PollChanges {
 		List<PollOption> secondOptions = second.getOptions();
 		
 		// Search for changes in existing options
-		for (Iterator<PollOption> iter = firstOptions.iterator(); iter.hasNext(); ) {
-			PollOption option = iter.next();
+		for (PollOption option : firstOptions) {
 			PollOption changed = this.findOptionById(option.getId(), secondOptions);
-			
+
 			if (changed != null && !option.getText().equals(changed.getText())) {
 				this.addChangedOption(changed);
 			}
@@ -134,9 +132,7 @@ public class PollChanges {
 		}
 
 		// Check if the incoming poll added options
-		for (Iterator<PollOption> iter = secondOptions.iterator(); iter.hasNext(); ) {
-			PollOption option = iter.next();
-			
+		for (PollOption option : secondOptions) {
 			if (this.findOptionById(option.getId(), firstOptions) == null) {
 				this.addNewOption(option);
 			}
@@ -144,14 +140,12 @@ public class PollChanges {
 	}
 	
 	private PollOption findOptionById(int id, List<PollOption> options) {
-		for (Iterator<PollOption> iter = options.iterator(); iter.hasNext(); ) {
-			PollOption o = iter.next();
-			
+		for (PollOption o : options) {
 			if (o.getId() == id) {
 				return o;
 			}
 		}
-		
+
 		return null;
 	}
 }

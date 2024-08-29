@@ -49,7 +49,6 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -231,9 +230,7 @@ public class GenericTopicDAO extends AutoKeys implements TopicDAO
 			PostDAO postDao = DataAccessDriver.getInstance().newPostDAO();
 			PollDAO pollDao = DataAccessDriver.getInstance().newPollDAO();
 
-			for (Iterator<Topic> iter = topics.iterator(); iter.hasNext();) {
-				Topic topic = iter.next();
-
+			for (Topic topic : topics) {
 				// Remove watches
 				this.removeSubscriptionByTopic(topic.getId());
 
@@ -736,8 +733,8 @@ public class GenericTopicDAO extends AutoKeys implements TopicDAO
 
 			pstmt.setInt(1, topicId);
 
-			for (Iterator<User> iter = users.iterator(); iter.hasNext(); ) {
-				int userId = iter.next().getId();
+			for (User user : users) {
+				int userId = user.getId();
 
 				pstmt.setInt(2, userId);
 				pstmt.executeUpdate();
@@ -759,10 +756,10 @@ public class GenericTopicDAO extends AutoKeys implements TopicDAO
 		User user = new User();
 		user.setId(userId);
 
-		List<User> l = new ArrayList<>();
-		l.add(user);
+		List<User> list = new ArrayList<>();
+		list.add(user);
 
-		this.subscribeUsers(topicId, l);
+		this.subscribeUsers(topicId, list);
 	}
 
 	/**
@@ -896,8 +893,8 @@ public class GenericTopicDAO extends AutoKeys implements TopicDAO
 
 			StringBuilder sb = new StringBuilder();
 
-			for (Iterator<Integer> iter = topicIds.iterator(); iter.hasNext(); ) {
-				sb.append(iter.next()).append(',');
+			for (Integer intId : topicIds) {
+				sb.append(intId).append(',');
 			}
 
 			sb.append("-1");
@@ -927,7 +924,7 @@ public class GenericTopicDAO extends AutoKeys implements TopicDAO
 	 */
 	public List<Topic> fillTopicsData(PreparedStatement pstmt)
 	{
-		List<Topic> l = new ArrayList<>();
+		List<Topic> list = new ArrayList<>();
 		ResultSet rs = null;
 		PreparedStatement pstmt2 = null;
 
@@ -956,7 +953,7 @@ public class GenericTopicDAO extends AutoKeys implements TopicDAO
                 topic.setLastPostTime(postTime);
                 topic.setLastPostDate(new Date(postTime.getTime()));
 
-				l.add(topic);
+				list.add(topic);
 
 				sbFirst.append(rs.getInt(USER_ID)).append(',');
 				sbLast.append(rs.getInt("last_user_id")).append(',');
@@ -980,14 +977,13 @@ public class GenericTopicDAO extends AutoKeys implements TopicDAO
 					users.put(Integer.valueOf(rs.getInt(USER_ID)), rs.getString("username"));
 				}
 
-				for (Iterator<Topic> iter = l.iterator(); iter.hasNext();) {
-					Topic topic = iter.next();
+				for (Topic topic : list) {
 					topic.getPostedBy().setUsername(users.get(Integer.valueOf(topic.getPostedBy().getId())));
 					topic.getLastPostBy().setUsername(users.get(Integer.valueOf(topic.getLastPostBy().getId())));
 				}
 			}
 
-			return l;
+			return list;
 		}
 		catch (SQLException e) {
 			throw new DatabaseException(e);
@@ -1147,12 +1143,12 @@ public class GenericTopicDAO extends AutoKeys implements TopicDAO
 	 */
 	@Override public List<Map<String, Object>> selectTopicTitlesByIds(Collection<?> idList)
 	{
-		List<Map<String, Object>> l = new ArrayList<>();
+		List<Map<String, Object>> list = new ArrayList<>();
 		String sql = SystemGlobals.getSql("TopicModel.selectTopicTitlesByIds");
 
 		StringBuilder sb = new StringBuilder(idList.size() * 2);
-		for (Iterator<?> iter = idList.iterator(); iter.hasNext();) {
-			sb.append(iter.next()).append(',');
+		for (Object obj : idList) {
+			sb.append(obj).append(',');
 		}
 
 		int len = sb.length();
@@ -1168,9 +1164,9 @@ public class GenericTopicDAO extends AutoKeys implements TopicDAO
 				m.put("id", Integer.valueOf(rs.getInt("topic_id")));
 				m.put("title", rs.getString("topic_title"));
 
-				l.add(m);
+				list.add(m);
 			}
-			return l;
+			return list;
 		}
 		catch (SQLException e) {
 			throw new DatabaseException(e);
@@ -1254,7 +1250,7 @@ public class GenericTopicDAO extends AutoKeys implements TopicDAO
     * @param userId The user id
     */
     @Override public List<Map<String, Object>> selectWatchesByUser(int userId) {
-        List<Map<String, Object>> l = new ArrayList<>();
+        List<Map<String, Object>> list = new ArrayList<>();
         PreparedStatement p = null;
         ResultSet rs = null;
         try {
@@ -1267,9 +1263,9 @@ public class GenericTopicDAO extends AutoKeys implements TopicDAO
                 m.put("id", Integer.valueOf(rs.getInt("topic_id")));
                 m.put("title", rs.getString("topic_title"));
                 m.put("forumName", rs.getString("forum_name"));
-                l.add(m);
+                list.add(m);
             }
-            return l;
+            return list;
         } catch (SQLException e) {
             throw new DatabaseException(e);
         } finally {

@@ -46,7 +46,6 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -116,9 +115,7 @@ public class Poll implements Serializable {
 	
 	public int getTotalVotes() {
 		int votes = 0;
-		Iterator<PollOption> iter = options.iterator();
-		while (iter.hasNext()) {
-			PollOption option = iter.next();
+		for (PollOption option : options) {
 			votes += option.getVoteCount();
 		}
 		return votes;

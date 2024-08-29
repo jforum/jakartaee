@@ -53,7 +53,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Date;
 import java.util.Enumeration;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Properties;
@@ -360,9 +359,7 @@ public class InstallAction extends Command
                                                                   + dbType
                                                                   + "/" + dbType + "_data_dump.sql");
 
-            for (final Iterator<String> iter = statements.iterator(); iter.hasNext();) {
-                String query = iter.next();
-
+            for (String query : statements) {
                 if (query == null || "".equals(query.trim())) {
                     continue;
                 }
@@ -447,9 +444,7 @@ public class InstallAction extends Command
                                                                     + "/" + dbType + "_db_struct.sql");
 
 
-            for (final Iterator<String> iter = statements.iterator(); iter.hasNext(); ) {
-                final String query = iter.next();
-
+            for (String query : statements) {
                 if (query == null || "".equals(query.trim())) {
                     continue;
                 }
@@ -495,19 +490,16 @@ public class InstallAction extends Command
                                                                     + "/database/" + dbName + "/" + dbName + "_drop_tables.sql");
 
             this.setupAutoCommit(conn);
-            for (final Iterator<String> iter = statements.iterator(); iter.hasNext(); ) {
+            for (String query : statements) {
+				if (query == null || "".equals(query.trim())) {
+					continue;
+				}
+
                 try {
-                    final String query = iter.next();
-
-                    if (query == null || "".equals(query.trim())) {
-                        continue;
-                    }
-
                     stmt = conn.createStatement();
                     stmt.executeUpdate(query);
                     stmt.close();
-                }
-                catch (SQLException e) {
+                } catch (SQLException e) {
                 	if (LOGGER.isEnabledFor(Level.WARN)) {
                 		LOGGER.warn("IGNORE: " + e.toString());
                 	}

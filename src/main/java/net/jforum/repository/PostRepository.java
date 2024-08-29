@@ -44,7 +44,6 @@ package net.jforum.repository;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -115,8 +114,8 @@ public class PostRepository implements Cacheable
 			PostDAO pm = DataAccessDriver.getInstance().newPostDAO();
 			posts = pm.selectAllByTopic(topicId);
 			
-			for (Iterator<Post> iter = posts.iterator(); iter.hasNext(); ) {
-				PostCommon.preparePostForDisplay(iter.next());
+			for (Post post : posts) {
+				PostCommon.preparePostForDisplay(post);
 			}
 	
 			Map<String, List<Post>> topics = (Map<String, List<Post>>)cache.get(FQN);

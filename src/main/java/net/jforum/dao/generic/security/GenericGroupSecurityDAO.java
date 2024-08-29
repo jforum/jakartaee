@@ -47,7 +47,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
@@ -108,8 +107,7 @@ public class GenericGroupSecurityDAO extends AutoKeys implements GroupSecurityDA
 		try {
 			final StringBuilder ids = new StringBuilder();
 
-			for (final Iterator<Integer> iterator = roleIds.iterator(); iterator.hasNext();) {
-				final Integer id = iterator.next();
+			for (Integer id : roleIds) {
 				ids.append(id).append(',');
 			}
 
@@ -251,8 +249,8 @@ public class GenericGroupSecurityDAO extends AutoKeys implements GroupSecurityDA
 						SystemGlobals.getSql("PermissionControl.addRoleValues"));
 				pstmt.setInt(1, roleId);
 
-				for (Iterator<?> iter = rvc.iterator(); iter.hasNext();) {
-					RoleValue rv = (RoleValue) iter.next();
+				for (Object obj : rvc) {
+					RoleValue rv = (RoleValue) obj;
 					pstmt.setString(2, rv.getValue());
 					pstmt.executeUpdate();
 				}
@@ -293,8 +291,8 @@ public class GenericGroupSecurityDAO extends AutoKeys implements GroupSecurityDA
 		int[] groupsIds = new int[groups.size()];
 		int i = 0;
 
-		for (Iterator<Group> iter = groups.iterator(); iter.hasNext();) {
-			groupsIds[i++] = iter.next().getId();
+		for (Group group : groups) {
+			groupsIds[i++] = group.getId();
 		}
 
 		Arrays.sort(groupsIds);

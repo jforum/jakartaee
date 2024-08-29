@@ -46,7 +46,6 @@ import java.io.File;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -240,9 +239,7 @@ public class XMLPermissionControl extends DefaultHandler
 				
 				List<SelectData> list = this.queries.get(atts.getValue("ref"));
 				
-				for (Iterator<SelectData> iter = list.iterator(); iter.hasNext(); ) {
-					SelectData data = iter.next();
-					
+				for (SelectData data : list) {
 					String id = Integer.toString(data.getId());
 					RoleValue roleValue = roleValues.get(id);
 

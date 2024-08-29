@@ -42,7 +42,6 @@
  */
 package net.jforum.security;
 
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 
 /**
@@ -76,8 +75,8 @@ public class RoleCollection extends LinkedHashMap<String, Role>
 	{
 		final StringBuilder stringBuffer = new StringBuilder(512);
 
-		for (final Iterator<Role> iter = this.values().iterator(); iter.hasNext(); ) {
-			stringBuffer.append(iter.next()).append('\n');
+		for (Role role : this.values()) {
+			stringBuffer.append(role).append('\n');
 		}
 
 		return stringBuffer.toString();

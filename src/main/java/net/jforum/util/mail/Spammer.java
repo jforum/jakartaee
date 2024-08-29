@@ -48,7 +48,6 @@ import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Enumeration;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
 import java.util.regex.Matcher;
@@ -208,9 +207,7 @@ public class Spammer
 	                    transport.connect(host, username, password);
 
 	                    if (transport.isConnected()) {
-	                        for (Iterator<User> userIter = this.users.iterator(); userIter.hasNext(); ) {
-	                        	User user = userIter.next();
-
+	                        for (User user : this.users) {
 	                        	if (this.needCustomization) {
 	                        		this.defineUserMessage(user);
 	                        	}
@@ -265,11 +262,8 @@ public class Spammer
                     	try { transport.close(); } catch (Exception e) { LOGGER.error(e); }
                     }
                 }
-            }
-            else {
-            	for (Iterator<User> iter = this.users.iterator(); iter.hasNext();) {
-                	User user = iter.next();
-
+            } else {
+            	for (User user : this.users) {
                 	if (this.needCustomization) {
                 		this.defineUserMessage(user);
                 	}
@@ -425,9 +419,7 @@ public class Spammer
 	{
 		boolean need = false;
 		
-		for (Iterator<User> iter = this.users.iterator(); iter.hasNext(); ) {
-			User user = iter.next();
-
+		for (User user : this.users) {
 			if (user.notifyText()) {
 				need = true;
 				break;

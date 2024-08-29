@@ -45,7 +45,6 @@ package net.jforum.view.forum.common;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -176,9 +175,7 @@ public class PostCommon
 		}
 		// now apply the regular expressions from the xml-config
 		String text = processed.toString();
-		for (Iterator<BBCode> iter = BBCodeRepository.getBBCollection().getBbList().iterator(); iter.hasNext();) {
-			BBCode bb = iter.next();
-
+		for (BBCode bb : BBCodeRepository.getBBCollection().getBbList()) {
 			if (bb.getTagName().startsWith("code")) {
 				text = text.replaceAll(bb.getRegex(), bb.getReplace());
 			}
@@ -238,8 +235,7 @@ public class PostCommon
 		String text = origText;
 		Collection<BBCode> list = BBCodeRepository.getBBCollection().getAlwaysProcessList();
 
-		for (Iterator<BBCode> iter = list.iterator(); iter.hasNext(); ) {
-			BBCode bb = iter.next();
+		for (BBCode bb : list) {
 			text = text.replaceAll(bb.getRegex(), bb.getReplace());
 		}
 
@@ -256,8 +252,7 @@ public class PostCommon
 	{
         List<Smilie> smilies = SmiliesRepository.getSmilies();
         BBCodeHandler bbch = BBCodeRepository.getBBCollection();
-        for (Iterator<Smilie> iter = smilies.iterator(); iter.hasNext();) {
-            Smilie s = iter.next();
+        for (Smilie s : smilies) {
             int pos = 0;
             // The counter is used as prevention, in case
             // the while loop turns into an always true expression, for any reason

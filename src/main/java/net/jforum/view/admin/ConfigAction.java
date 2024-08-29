@@ -166,11 +166,8 @@ public class ConfigAction extends AdminCommand
 		if (oldTopicsPerPage != SystemGlobals.getIntValue(ConfigKeys.TOPICS_PER_PAGE)) {
 			List<Category> categories = ForumRepository.getAllCategories();
 
-			for (Iterator<Category> iter = categories.iterator(); iter.hasNext(); ) {
-				Category category = iter.next();
-
-				for (Iterator<Forum> iter2 = category.getForums().iterator(); iter2.hasNext(); ) {
-					Forum forum = iter2.next();
+			for (Category category : categories) {
+				for (Forum forum : category.getForums()) {
 					TopicRepository.clearCache(forum.getId());
 				}
 			}

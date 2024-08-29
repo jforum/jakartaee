@@ -48,7 +48,6 @@ import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
@@ -270,9 +269,7 @@ public class WebRequestContext extends HttpServletRequestWrapper implements Requ
 		try {
 			List<FileItem> items = upload.parseRequest(superRequest);
 
-			for (Iterator<FileItem> iter = items.iterator(); iter.hasNext(); ) {
-				FileItem item = iter.next();
-
+			for (FileItem item : items) {
 				if (item.isFormField()) {
 					this.addParameter(item.getFieldName(), item.getString(encoding));
 				} else {

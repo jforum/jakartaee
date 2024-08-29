@@ -43,7 +43,6 @@
 package net.jforum.util;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import net.jforum.dao.DataAccessDriver;
@@ -142,11 +141,9 @@ public class TreeGroup
 
 		final List<GroupNode> rootGroups = tgm.selectGroups(0);	
 				
-		for (final Iterator<GroupNode> iter = rootGroups.iterator(); iter.hasNext();) {
-			final GroupNode groupNode = iter.next();
-						
+		for (GroupNode groupNode : rootGroups) {
 			this.checkExtraNodes(groupNode);
-			
+
 			nodes.add(groupNode);
 		}
 		
@@ -164,11 +161,9 @@ public class TreeGroup
 
 		final List<GroupNode> childGroups = tgm.selectGroups(groupNode.getId());	
 				
-		for (final Iterator<GroupNode> iter = childGroups.iterator(); iter.hasNext();) {
-			final GroupNode foundNode = iter.next();
-			
+		for (GroupNode foundNode : childGroups) {
 			this.checkExtraNodes(foundNode);
-			
+
 			groupNode.addNode(foundNode);
 		}
 	}

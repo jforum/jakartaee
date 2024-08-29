@@ -44,7 +44,6 @@ package net.jforum.repository;
 
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -201,9 +200,7 @@ public class TopicRepository implements Cacheable {
 
 				Integer fId = Integer.valueOf(forumId);
 
-				for (Iterator<Topic> iter = topics.iterator(); iter.hasNext();) {
-					Topic topic = iter.next();
-
+				for (Topic topic : topics) {
 					m.put(Integer.valueOf(topic.getId()), fId);
 				}
 

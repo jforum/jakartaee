@@ -49,7 +49,6 @@ import net.jforum.exceptions.ForumException;
 
 import java.io.IOException;
 import java.io.StringReader;
-import java.util.Iterator;
 import java.util.List;
 
 import org.apache.lucene.analysis.TokenStream;
@@ -105,9 +104,7 @@ public class LuceneContentCollector
 	{
 		List<Post> posts = DataAccessDriver.getInstance().newLuceneDAO().getPostsData(postIds);
 
-		for (Iterator<Post> iter = posts.iterator(); iter.hasNext(); ) {
-			Post post = iter.next();
-
+		for (Post post : posts) {
 			QueryScorer scorer = new QueryScorer(query);
 
 			// see also ContentSearchOperation.prepareForDisplay

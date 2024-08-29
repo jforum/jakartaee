@@ -48,6 +48,7 @@ import java.util.List;
 
 import freemarker.template.SimpleHash;
 import freemarker.template.Template;
+
 import net.jforum.Command;
 import net.jforum.JForumExecutionContext;
 import net.jforum.SessionFacade;
@@ -162,9 +163,7 @@ public class RSSAction extends Command
 			SystemGlobals.getIntValue(ConfigKeys.TOPICS_PER_PAGE));
 
 		final List<Post> authPosts = new ArrayList<>();  
-		final Iterator<Post> iter = posts.iterator();  
-		while ( iter.hasNext() ) {  
-		     Post post = iter.next();  
+		for (Post post : posts) {
 		     if ( TopicsCommon.isTopicAccessible(post.getForumId(), false) ) {  
 		         authPosts.add(post);  
 		     }  
@@ -184,9 +183,7 @@ public class RSSAction extends Command
 			SystemGlobals.getIntValue(ConfigKeys.HOTTEST_TOPICS));
 
 		List<Post> authPosts = new ArrayList<>();  
-		Iterator<Post> iter = posts.iterator();  
-		while ( iter.hasNext() ) {  
-		     Post post = iter.next();  
+		for (Post post : posts) {
 		     if ( TopicsCommon.isTopicAccessible(post.getForumId(), false) ) {  
 		         authPosts.add(post);  
 		     }  

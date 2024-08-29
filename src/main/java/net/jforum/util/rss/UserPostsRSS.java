@@ -41,7 +41,6 @@
  */
 package net.jforum.util.rss;
 
-import java.util.Iterator;
 import java.util.List;
 
 import net.jforum.entities.Forum;
@@ -68,8 +67,7 @@ public class UserPostsRSS extends GenericRSS {
     }
 
     private void prepareRSS(List<Post> posts) {
-        for (Iterator<Post> iter = posts.iterator(); iter.hasNext();) {
-            Post p = iter.next();
+        for (Post p : posts) {
             p.setBbCodeEnabled(true);
             p.setHtmlEnabled(false);
             p.setHtmlEnabled(false);

@@ -47,7 +47,6 @@ import java.io.FileNotFoundException;
 import java.security.SecureRandom;
 import java.util.Base64;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -630,9 +629,7 @@ public class UserAction extends Command
 			int count = 0;
 
 			List<Bookmark> bookmarks = da.newBookmarkDAO().selectByUser(user.getId());
-			for (Iterator<Bookmark> iter = bookmarks.iterator(); iter.hasNext(); ) {
-				Bookmark bookmark = iter.next();
-
+			for (Bookmark bookmark : bookmarks) {
 				if (bookmark.isPublicVisible() || loggedId == user.getId()) {
 					count++;
 				}

@@ -48,7 +48,6 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.List;
 
 import net.jforum.JForumExecutionContext;
@@ -1052,9 +1051,7 @@ public class GenericUserDAO extends AutoKeys implements UserDAO
 	{
 		List<User> result = new ArrayList<>(users.size());
 
-		for (Iterator<User> iter = users.iterator(); iter.hasNext();) {
-			User user = iter.next();
-
+		for (User user : users) {
 			// Load Karma
 			DataAccessDriver.getInstance().newKarmaDAO().getUserTotalKarma(user);
 			result.add(user);

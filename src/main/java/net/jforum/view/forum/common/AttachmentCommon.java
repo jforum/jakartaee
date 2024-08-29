@@ -292,8 +292,8 @@ public class AttachmentCommon
 		QuotaLimit ql = new QuotaLimit();
 		User user = DataAccessDriver.getInstance().newUserDAO().selectById(userId);
 		
-		for (Iterator<Group> iter = user.getGroupsList().iterator(); iter.hasNext();) {
-			QuotaLimit l = this.attachmentDao.selectQuotaLimitByGroup(iter.next().getId());
+		for (Group group : user.getGroupsList()) {
+			QuotaLimit l = this.attachmentDao.selectQuotaLimitByGroup(group.getId());
 			if (l == null) {
 				continue;
 			}
@@ -459,8 +459,7 @@ public class AttachmentCommon
 		List<Attachment> attachments = DataAccessDriver.getInstance().newAttachmentDAO().selectAttachments(postId);
 		StringBuilder attachIds = new StringBuilder();
 		
-		for (Iterator<Attachment> iter = attachments.iterator(); iter.hasNext(); ) {
-			Attachment a = iter.next();
+		for (Attachment a : attachments) {
 			attachIds.append(a.getId()).append(',');
 		}
 		

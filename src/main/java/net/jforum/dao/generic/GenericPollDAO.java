@@ -48,7 +48,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.List;
 
 import net.jforum.JForumExecutionContext;
@@ -117,9 +116,7 @@ public class GenericPollDAO extends AutoKeys implements PollDAO
 			pstmt.close();
 
 			pstmt = connection.prepareStatement(SystemGlobals.getSql("PollModel.addNewPollOption"));
-			for (Iterator<PollOption> iter = options.iterator(); iter.hasNext();) {
-				PollOption option = iter.next();
-
+			for (PollOption option : options) {
 				pstmt.setInt(1, pollId);
 				pstmt.setInt(2, ++optionId);
 				pstmt.setString(3, option.getText());
@@ -387,9 +384,7 @@ public class GenericPollDAO extends AutoKeys implements PollDAO
 		try {
 			options = connection.prepareStatement(SystemGlobals.getSql("PollModel.deletePollOption"));
 
-			for (Iterator<PollOption> iter = deleted.iterator(); iter.hasNext();) {
-				PollOption o = iter.next();
-
+			for (PollOption o : deleted) {
 				// Option
 				options.setInt(1, pollId);
 				options.setInt(2, o.getId());
@@ -408,9 +403,7 @@ public class GenericPollDAO extends AutoKeys implements PollDAO
 			pstmt = JForumExecutionContext.getConnection().prepareStatement(
 					SystemGlobals.getSql("PollModel.updatePollOption"));
 
-			for (Iterator<PollOption> iter = options.iterator(); iter.hasNext();) {
-				PollOption o = iter.next();
-
+			for (PollOption o : options) {
 				pstmt.setString(1, o.getText());
 				pstmt.setInt(2, o.getId());
 				pstmt.setInt(3, pollId);

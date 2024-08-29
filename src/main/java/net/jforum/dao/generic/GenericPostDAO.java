@@ -48,7 +48,6 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.List;
 
 import net.jforum.JForumExecutionContext;
@@ -163,9 +162,7 @@ public class GenericPostDAO extends AutoKeys implements net.jforum.dao.PostDAO
 			pstmtText = JForumExecutionContext.getConnection().prepareStatement(
 					SystemGlobals.getSql("PostModel.deletePostText"));
 
-			for (Iterator<Post> iter = posts.iterator(); iter.hasNext();) {
-				Post post = iter.next();
-
+			for (Post post : posts) {
 				pstmtPost.setInt(1, post.getId());
 				pstmtText.setInt(1, post.getId());
 

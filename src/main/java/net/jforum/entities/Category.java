@@ -239,8 +239,7 @@ public class Category implements Serializable, Comparable<Category>
 
 	private Forum findByOrder(int order)
 	{
-		for (Iterator<Forum> iter = this.forums.iterator(); iter.hasNext(); ) {
-			Forum forum = iter.next();
+		for (Forum forum : this.forums) {
 			if (forum.getOrder() == order) {
 				return forum;
 			}
@@ -315,8 +314,7 @@ public class Category implements Serializable, Comparable<Category>
 		PermissionControl pc = SecurityRepository.get(userId);
 		List<Forum> forums = new ArrayList<>();
 
-		for (Iterator<Forum> iter = this.forums.iterator(); iter.hasNext(); ) {
-			Forum forum = iter.next();
+		for (Forum forum : this.forums) {
 			if (pc.canAccess(SecurityConstants.PERM_FORUM, Integer.toString(forum.getId()))) {
 				forums.add(forum);
 			}

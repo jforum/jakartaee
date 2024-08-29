@@ -51,7 +51,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.StringWriter;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -286,8 +285,8 @@ public class LuceneIndexer
 
 	private void notifyNewDocumentAdded()
 	{
-		for (Iterator<NewDocumentAdded> iter = this.newDocumentAddedList.iterator(); iter.hasNext(); ) {
-			iter.next().newDocumentAdded();
+		for (NewDocumentAdded newDoc : newDocumentAddedList) {
+			newDoc.newDocumentAdded();
 		}
 	}
 

@@ -43,7 +43,6 @@
 package net.jforum.view.forum;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import org.apache.log4j.Logger;
@@ -223,17 +222,14 @@ public class ModerationHelper
 			TopicRepository.loadHottestTopics();
 
 			// Reload changed forums
-			for (Iterator<Integer> iter = forumsList.iterator(); iter.hasNext(); ) {
-				int forumId = iter.next().intValue();
-
+			for (int forumId : forumsList) {
 				TopicRepository.clearCache(forumId);
 
 				int postId = fm.getMaxPostId(forumId);
 
 				if (postId > -1) {
 					fm.setLastPost(forumId, postId);
-				}
-				else {
+				} else {
 					LOGGER.warn("Could not find last post id for forum " + forumId);
 				}
 

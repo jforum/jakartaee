@@ -44,7 +44,6 @@
 package net.jforum.search;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import net.jforum.entities.Post;
@@ -72,8 +71,7 @@ public class ContentSearchOperation extends SearchOperation
 	
 	@Override public void prepareForDisplay()
 	{
-		for (final Iterator<Post> iter = this.results.iterator(); iter.hasNext(); ) {
-			Post post = iter.next();
+		for (Post post : this.results) {
 			PostCommon.preparePostForDisplay(post);
 			// enable highlighting in CODE blocks
 			// must match what is used in LuceneContentCollector.retrieveRealPosts

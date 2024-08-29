@@ -43,7 +43,6 @@
 package net.jforum.view.forum.common;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -131,17 +130,16 @@ public final class ForumCommon
 		}
 
 		final List<Category> returnCategories = new ArrayList<>();
-		for (Iterator<Category> iter = categories.iterator(); iter.hasNext(); ) {
-			Category category = new Category(iter.next());
-			
-			for (Iterator<Forum> tmpIterator = category.getForums().iterator(); tmpIterator.hasNext(); ) {
-				Forum forum = tmpIterator.next();
+		for (Category cat : categories) {
+			Category category = new Category(cat);
+
+			for (Forum forum : category.getForums()) {
 				ForumCommon.checkUnreadPosts(forum, tracking, lastVisit);
 			}
-			
+
 			returnCategories.add(category);
 		}
-		
+
 		return returnCategories;
 	}
 	
