@@ -110,14 +110,12 @@ function limitTextArea(field, limit)
 	<tr>
 		<th class="thhead" valign="middle" colspan="2">${I18n.getMessage("Forums.Form.Title")}</th>
 	</tr>
-        
 	<tr>
 		<td class="row1" width="20%"><span class="gen">${I18n.getMessage("Forums.Form.ForumName")}</span></td>
 		<td class="row2"><input type="text" class="post" maxlength="150" size="50" name="forum_name" value="<#if forum?exists>${forum.name?html}</#if>" /></td>
 	</tr>
-
 	<tr>
-		<td class="row1" width="38%"><span class="gen">${I18n.getMessage("Forums.Form.Moderate")}</span></td>
+		<td class="row1" width="20%"><span class="gen">${I18n.getMessage("Forums.Form.Moderate")}</span></td>
 		<td class="row2">
 			<span class="gen">
 			<input class="post" type="radio" name="moderate" value="0" <#if forum?exists><#if !forum.isModerated()>checked="checked"</#if><#else>checked="checked"</#if>/>&nbsp;${I18n.getMessage("User.no")}&nbsp;&nbsp;
@@ -125,7 +123,6 @@ function limitTextArea(field, limit)
 			</span>
 		</td>
 	</tr>
-
 	<tr>
 		<td class="row1"><span class="gen">${I18n.getMessage("Forums.Form.Category")}</span></td>
 		<td class="row2">
@@ -134,32 +131,28 @@ function limitTextArea(field, limit)
 			</select>
 		</td>
 	</tr>
-
 	<tr>
 		<td class="row1"><span class="gen">${I18n.getMessage("Forums.Form.Description")}</span></td>
-		<td class="row2"><textarea name="description" cols="40" rows="5" class="post" style="width: 100%" onkeydown="limitTextArea(this, 255);" onkeyup="limitTextArea(this, 255);"><#if forum?exists>${forum.description?default("")}</#if></textarea></td>
+		<td class="row2"><textarea name="description" cols="40" rows="5" class="post" onkeydown="limitTextArea(this, 255);" onkeyup="limitTextArea(this, 255);"><#if forum?exists>${forum.description?default("")}</#if></textarea></td>
 	</tr>
-	
+
 	<#if !edit>
 	<tr>
 		<td class="row1"><span class="gen">${I18n.getMessage("Forums.Form.Permissions")}</span></td>
 		<td class="row2">
 			<table width="100%">
 				<tr>
-					<td width="50%"><span class="gen"><b>${I18n.getMessage("Forums.Form.RestrictAccessToGroup")}</b></span></td>
+					<td width="30%"><span class="gen"><b>${I18n.getMessage("Forums.Form.RestrictAccessToGroup")}</b></span></td>
 					<td><@lib.selectFieldGroups "groupsAccess", groups, 0, true, selectedList/></td>
 				</tr>
-
 				<tr>
 					<td><span class="gen"><b>${I18n.getMessage("Forums.Form.RestrictAnonymousPostToGroup")}</b></span></td>
 					<td><@lib.selectFieldGroups "groupsAnonymous", groups, 0, true, selectedList/></td>
 				</tr>
-
 				<tr>
 					<td><span class="gen"><b>${I18n.getMessage("Forums.Form.MarkAsReadOnlyToGroup")}</b></span></td>
 					<td><@lib.selectFieldGroups "groupsReadOnly", groups, 0, true, selectedList/></td>
 				</tr>
-
 				<tr>
 					<td><span class="gen"><b>${I18n.getMessage("Forums.Form.RestrictHtmlToGroup")}</b></span></td>
 					<td><@lib.selectFieldGroups "groupsHtml", groups, 0, true, selectedList/></td>
@@ -169,13 +162,12 @@ function limitTextArea(field, limit)
 	</tr>
 	</#if>
 
-
 	<tr>
 		<td class="row1"><span class="gen">${I18n.getMessage("Forums.Form.EmailIntegration")}</span></td>
 		<td class="row2">
 			<table width="100%">
 				<tr>
-					<td width="50%"><span class="gen"><b>${I18n.getMessage("Forums.Form.UseEmailIntegration")}</b></span></td>
+					<td width="30%"><span class="gen"><b>${I18n.getMessage("Forums.Form.UseEmailIntegration")}</b></span></td>
 					<td><input type="checkbox" name="mail_integration" value="1" <#if mailIntegration?exists>checked="checked"</#if> onclick="showMailIntegration(this.checked);" /></td>
 				</tr>
 
@@ -183,32 +175,27 @@ function limitTextArea(field, limit)
 					<td colspan="2">
 						<table width="100%">
 							<tr>
-							<td width="50%"><span class="gen"><b>${I18n.getMessage("Forums.Form.ForumEmail")}</b></span></td>
-							<td><input type="text" name="forum_email" value="<#if mailIntegration?exists>${mailIntegration.forumEmail}</#if>" /></td>
+								<td width="30%"><span class="gen"><b>${I18n.getMessage("Forums.Form.ForumEmail")}</b></span></td>
+								<td><input type="text" size="30" name="forum_email" value="<#if mailIntegration?exists>${mailIntegration.forumEmail}</#if>" /></td>
 							</tr>
-
 							<tr>
-								<td width="50%"><span class="gen"><b>${I18n.getMessage("Forums.Form.PopHost")}</b></span></td>
-								<td><input type="text" name="pop_host" value="<#if mailIntegration?exists>${mailIntegration.popHost}</#if>" /></td>
+								<td width="30%"><span class="gen"><b>${I18n.getMessage("Forums.Form.PopHost")}</b></span></td>
+								<td><input type="text" size="30" name="pop_host" value="<#if mailIntegration?exists>${mailIntegration.popHost}</#if>" /></td>
 							</tr>
-
 							<tr>
-								<td width="50%"><span class="gen"><b>${I18n.getMessage("Forums.Form.PopPort")}</b></span></td>
-								<td><input type="text" name="pop_port" value="<#if mailIntegration?exists>${mailIntegration.popPort}</#if>" /></td>
+								<td width="30%"><span class="gen"><b>${I18n.getMessage("Forums.Form.PopPort")}</b></span></td>
+								<td><input type="text" size="10" name="pop_port" value="<#if mailIntegration?exists>${mailIntegration.popPort}</#if>" /></td>
 							</tr>
-
 							<tr>
-								<td width="50%"><span class="gen"><b>${I18n.getMessage("Forums.Form.PopUsername")}</b></span></td>
-								<td><input type="text" name="pop_username" value="<#if mailIntegration?exists>${mailIntegration.popUsername}</#if>" /></td>
+								<td width="30%"><span class="gen"><b>${I18n.getMessage("Forums.Form.PopUsername")}</b></span></td>
+								<td><input type="text" size="30" name="pop_username" value="<#if mailIntegration?exists>${mailIntegration.popUsername}</#if>" /></td>
 							</tr>
-
 							<tr>
-								<td width="50%"><span class="gen"><b>${I18n.getMessage("Forums.Form.PopPassword")}</b></span></td>
-								<td><input type="text" name="pop_password" value="<#if mailIntegration?exists>${mailIntegration.popPassword}</#if>" /></td>
+								<td width="30%"><span class="gen"><b>${I18n.getMessage("Forums.Form.PopPassword")}</b></span></td>
+								<td><input type="text" size="30" name="pop_password" value="<#if mailIntegration?exists>${mailIntegration.popPassword}</#if>" /></td>
 							</tr>
-
 							<tr>
-								<td width="50%"><span class="gen"><b>${I18n.getMessage("Forums.Form.RequiresSSL")}</b></span></td>
+								<td width="30%"><span class="gen"><b>${I18n.getMessage("Forums.Form.RequiresSSL")}</b></span></td>
 								<td><input type="checkbox" name="requires_ssl" value="1" <#if mailIntegration?exists && mailIntegration.isSsl()>checked="checked"</#if> /></td>
 							</tr>
 						</table>
@@ -218,15 +205,13 @@ function limitTextArea(field, limit)
 		</td>
 	</tr>
 
-
 	<tr>
 		<td class="catbottom" colspan="2" align="center"><input class="mainoption" type="submit" value="${I18n.getMessage("Forums.Form.ClickToUpdate")}" name="submit" /></td>
 	</tr>
-
 </table>
 </form>
 
-<#if false && mailIntegration?exists>
+<#if mailIntegration?exists>
 	<script type="text/javascript">showMailIntegration(true);</script>
 </#if>
 

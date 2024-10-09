@@ -38,13 +38,13 @@ public class RegEmailAction extends AdminCommand {
 
 		Group group = groupDao.selectById(groupId);
 		if (group.getId() == groupId) {
-			LOG.info("Creating registration email/domain" + email + " in " + group);
+			LOG.debug("Creating registration email/domain " + email + " in " + group);
 			regEmailDao.addRegEmail(email, group);
 
 			RegEmailRepository.load();
 		} else {
 			context.put("errorMessage", I18n.getMessage("RegEmail.noSuchGroup"));
-			LOG.info("Group id="+groupId+" does not exist");
+			LOG.warn("Group id="+groupId+" does not exist");
 		}
 
         this.list();
@@ -52,7 +52,7 @@ public class RegEmailAction extends AdminCommand {
 
     public void delete() {
         final String email = request.getParameter("email");
-        LOG.info("Deleting " + email);
+        LOG.debug("Deleting " + email);
         regEmailDao.deleteRegEmail(email);
 
 		RegEmailRepository.load();

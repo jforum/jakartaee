@@ -43,9 +43,9 @@
 package net.jforum.api.integration.mail.pop;
 
 import java.util.Date;
-import java.util.Iterator;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
@@ -70,7 +70,7 @@ public class POPPostAction
 {
 	private static final Logger LOGGER = Logger.getLogger(POPPostAction.class);
 
-	public void insertMessages(final POPParser parser)
+	public void insertMessages (final POPParser parser)
 	{
 		final long currentTimestamp = System.currentTimeMillis();
 		int counter = 0;
@@ -85,20 +85,17 @@ public class POPPostAction
 
 			SessionFacade.setAttribute(ConfigKeys.TOPICS_READ_TIME, new ConcurrentHashMap<>());
 
-			for (final Iterator<POPMessage> iter = parser.getMessages().iterator(); iter.hasNext(); ) {
-				final POPMessage message = iter.next();
+			for (POPMessage message : parser.getMessages()) {
+				final User user = this.findUser(message.getSender());
+				if (user == null) {
+					// skip messages from unknown users
+					LOGGER.warn("Could not find user with email " + message.getSender() + "; ignoring message.");
+					continue;
+				}
+
 				final String sessionId = currentTimestamp + message.getSender() + counter++;
 
 				request.getSessionContext().setAttribute(StandardSessionContext.SESSION_ID, sessionId);
-
-				final User user = this.findUser(message.getSender());
-
-				if (user == null) {
-					if (LOGGER.isEnabledFor(Level.WARN)) {
-						LOGGER.warn("Could not find user with email " + message.getSender() + ". Ignoring his message.");
-					}
-					continue;
-				}
 
 				try {
 					final UserSession userSession = new UserSession();
@@ -114,8 +111,7 @@ public class POPPostAction
 					SessionFacade.setAttribute(ConfigKeys.REQUEST_IGNORE_CAPTCHA, "1");
 
 					this.insertMessage(message, user);
-				}
-				finally {
+				} finally {
 					SessionFacade.remove(sessionId);
 				}
 			}
@@ -146,6 +142,8 @@ public class POPPostAction
 	private void addDataToRequest(final POPMessage message, final User user)
 	{
 		final RequestContext request = JForumExecutionContext.getRequest(); 
+		request.addParameter("total_files", message.getAttachments().size());
+		request.addParameter("pop3_attachments", message.getAttachments());
 
 		request.addParameter("forum_id", Integer.toString(this.discoverForumId(message.getListEmail())));
 		request.addParameter("topic_type", Integer.toString(Topic.TYPE_NORMAL));

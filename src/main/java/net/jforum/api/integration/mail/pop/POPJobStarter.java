@@ -59,7 +59,6 @@ import net.jforum.util.preferences.SystemGlobals;
 /**
  * @author Rafael Steil
  * @author Andowson Chang
- * @version $Id$
  */
 public final class POPJobStarter
 {	
@@ -69,23 +68,19 @@ public final class POPJobStarter
 	private static final Object MUTEX = new Object();
 	
 	/**
-	 * Starts the main integration Job. Conditions to start: Is not started yet and is enabled on the file
-	 * SystemGlobasl.properties. The key to enable it is "mail.pop3.integration.enabled"
-	 * (ConfigKeys.MAIL_POP3_INTEGRATION_ENABLED).
+	 * Starts the main integration Job if it has not been started yet.
 	 * 
 	 * @throws SchedulerException
 	 */
 	public static void startJob() throws SchedulerException
 	{
-		final boolean isEnabled = SystemGlobals.getBoolValue(ConfigKeys.MAIL_POP3_INTEGRATION_ENABLED);
-		
 		synchronized(MUTEX) {
-			if (!isStarted && isEnabled) {
+			if (!isStarted) {
 				final String filename = SystemGlobals.getValue(ConfigKeys.QUARTZ_CONFIG);
 	
 				final String cronExpression = SystemGlobals.getValue("org.quartz.context.mailintegration.cron.expression");
 				scheduler = new StdSchedulerFactory(filename).getScheduler();
-				
+
 				final JobDetail job = newJob(POPListener.class).withIdentity("pop3Integration", "group1").build();
 
 				final CronTrigger trigger = newTrigger().withIdentity("trigger2", "group1").withSchedule(cronSchedule(cronExpression)).build();
@@ -94,33 +89,29 @@ public final class POPJobStarter
 				LOGGER.info("Starting POP3 integration expression " + cronExpression);					
 				scheduler.start();
 			}
-			
+
 			isStarted = true;
 		}
 	}
 
 	/**
-	 * Stops the main integration Job. Conditions to stop: Is started and is enabled on the file
-	 * SystemGlobasl.properties. The key to enable it is "mail.pop3.integration.enabled"
-	 * (ConfigKeys.MAIL_POP3_INTEGRATION_ENABLED).
+	 * Stops the main integration Job if it has ben started. 
 	 * 
 	 * @throws SchedulerException
 	 */
 	public static void stopJob() throws SchedulerException
 	{
-		final boolean isEnabled = SystemGlobals.getBoolValue(ConfigKeys.MAIL_POP3_INTEGRATION_ENABLED);
-		
 		synchronized(MUTEX) {
-			if (isStarted && isEnabled) {
+			if (isStarted) {
 				final String cronExpression = SystemGlobals.getValue("org.quartz.context.mailintegration.cron.expression");
 									
 				LOGGER.info("Stopping POP3 integration expression " + cronExpression);					
 				scheduler.shutdown(true);				 
 			}
-			
+
 			isStarted = false;
 		}
-		
+
 		// avoid Tomcat report memory leak
 		try {
 			Thread.sleep(1000);

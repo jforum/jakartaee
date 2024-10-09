@@ -276,6 +276,7 @@ public class LuceneIndexer
 					}
 				} catch (Exception ex) {
 					LOGGER.error("indexing "+f.getName()+": " + ex.getMessage());
+					ex.printStackTrace();
 				}
 			}
 		}

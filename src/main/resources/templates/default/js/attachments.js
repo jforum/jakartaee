@@ -6,7 +6,7 @@ var counter = 0;
 
 <#if attachmentsEnabled>
 	var template = "<div id='attach_#counter#'><table width='100%' class='gensmall'><tr><td>${I18n.getMessage("Attachments.filename")}<\/td>";
-	template += "<td><input type='file' size='50' name='file_#counter#' \/><\/td><\/tr>";
+	template += "<td><input type='file' size='50' name='file_#counter#' class='fileUpload'\/><\/td><\/tr>";
 	template += "<tr><td>${I18n.getMessage("Attachments.description")}<\/td>";
 	template += "<td><input type='text' name='comment_#counter#' size='50' \/>";
 	template += "&nbsp;&nbsp;<a href='javascript:removeAttach(#counter#)' class='gensmall'>[${I18n.getMessage("Attachments.remove")}]<\/a><\/td><\/tr>";

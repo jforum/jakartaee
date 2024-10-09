@@ -61,11 +61,11 @@ public class POPParser
 	public void parseMessages(final POPConnector connector)
 	{
 		final Message[] connectorMessages = connector.listMessages();
-		
+
 		for (int i = 0; i < connectorMessages.length; i++) {
 			final POPMessage message = new POPMessage(connectorMessages[i]);
 			this.messages.add(message);
-			
+
 			if (LOGGER.isDebugEnabled()) {
 				LOGGER.debug("Retrieved message " + message);
 			}

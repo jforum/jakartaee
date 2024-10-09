@@ -62,6 +62,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.log4j.Logger;
 
 import net.jforum.SessionFacade;
+import net.jforum.api.integration.mail.pop.POPMessage.POPAttachment;
 import net.jforum.context.RequestContext;
 import net.jforum.dao.AttachmentDAO;
 import net.jforum.dao.DataAccessDriver;
@@ -91,39 +92,39 @@ public class AttachmentCommon
 {
 	private static final Logger LOGGER = Logger.getLogger(AttachmentCommon.class);
 	private static final String DENY_ALL = "*";
-	
+
 	private final RequestContext request;
 	private AttachmentDAO attachmentDao;
 	private final boolean canProceed;
 	private final Map<UploadUtils, Attachment> filesToSave = new ConcurrentHashMap<>();
-	
+
 	public AttachmentCommon(final RequestContext request, final int forumId)
 	{
 		this.request = request;
 		this.attachmentDao = DataAccessDriver.getInstance().newAttachmentDAO();
-		
+
 		this.canProceed = SecurityRepository.canAccess(SecurityConstants.PERM_ATTACHMENTS_ENABLED, 
 			Integer.toString(forumId));
 	}
-	
+
 	public void preProcess()
 	{
 		if (!this.canProceed) {
 			return;
 		}
-		
+
 		final String totalFiles = this.request.getParameter("total_files");
-		
+
 		if (totalFiles == null || "".equals(totalFiles)) {
 			return;
 		}
-		
+
 		int total = Integer.parseInt(totalFiles);
-		
+
 		if (total < 1) {
 			return;
 		}
-		
+
 		if (total > SystemGlobals.getIntValue(ConfigKeys.ATTACHMENTS_MAX_POST)) {
 			total = SystemGlobals.getIntValue(ConfigKeys.ATTACHMENTS_MAX_POST);
 		}
@@ -131,21 +132,31 @@ public class AttachmentCommon
 		long totalSize = 0;
 		final int userId = SessionFacade.getUserSession().getUserId();
 		final Map<String, Boolean> extensions = this.attachmentDao.extensionsForSecurity();
-		
-		for (int i = 0; i < total; i++) {
-			final FileItem item = (FileItem)this.request.getObjectParameter("file_" + i);
-			
-			if (item == null) {
-				continue;
-			}
 
-			if (item.getName().indexOf('\000') > -1) {
-				LOGGER.warn("Possible bad attachment (null char): " + item.getName()
-					+ " - user_id: " + SessionFacade.getUserSession().getUserId());
-				continue;
+		final boolean isFileItem = request.getParameter("pop3_attachments") == null;
+		final ArrayList<POPAttachment> attachments = (ArrayList<POPAttachment>) request.getObjectParameter("pop3_attachments");
+
+		for (int i = 0; i < total; i++) {
+			UploadUtils uploadUtils = null;
+			FileItem item = null;
+
+			if (isFileItem) {
+				item = (FileItem)this.request.getObjectParameter("file_" + i);
+				if (item == null) {
+					continue;
+				}
+
+				if (item.getName().indexOf('\000') > -1) {
+					LOGGER.warn("Possible bad attachment (null char): " + item.getName()
+						+ " - user_id: " + SessionFacade.getUserSession().getUserId());
+					continue;
+				}
+				
+				uploadUtils = new UploadUtils(item);
+			} else {
+				POPAttachment attach = attachments.get(i);
+				uploadUtils = new UploadUtils(attach.getFileName(), attach.getMimeType(), attach.getData());
 			}
-			
-			final UploadUtils uploadUtils = new UploadUtils(item);
 
 			// Check if the extension is allowed
 			boolean containsExtension = extensions.containsKey(uploadUtils.getExtension());
@@ -161,45 +172,46 @@ public class AttachmentCommon
 
 			// Check comment length:
 			String comment = this.request.getParameter("comment_" + i);
+			if (comment == null) comment = "";
 			if (comment.length() > 254) {
 				throw new AttachmentException("Comment too long.");
 			}
-			
+
 			Attachment attachment = new Attachment();
 			attachment.setUserId(userId);
-			
+
 			AttachmentInfo info = new AttachmentInfo();
-			info.setFilesize(item.getSize());
+			info.setFilesize(uploadUtils.getBytes().length);
 			info.setComment(comment);
-			info.setMimetype(item.getContentType());
-			
+			info.setMimetype(uploadUtils.getMimeType());
+
 			// Get only the filename, without the path (IE does that)
-			String realName = this.stripPath(item.getName());
-			
+			String realName = this.stripPath(uploadUtils.getOriginalName());
+
 			info.setRealFilename(realName);
 			info.setUploadTimeInMillis(System.currentTimeMillis());
-			
+
 			AttachmentExtension ext = this.attachmentDao.selectExtension(uploadUtils.getExtension().toLowerCase());
 			if (ext.isUnknown()) {
 				ext.setExtension(uploadUtils.getExtension());
 			}
-			
+
 			info.setExtension(ext);
 			String savePath = this.makeStoreFilename(info);
 			info.setPhysicalFilename(savePath);
-			
+
 			attachment.setInfo(info);
 			filesToSave.put(uploadUtils, attachment);
-			
-			totalSize += item.getSize();
+
+			totalSize += uploadUtils.getBytes().length;
 		}
-		
+
 		// Check upload limits
 		QuotaLimit quotaLimit = this.getQuotaLimit(userId);
 		if ((quotaLimit != null) && quotaLimit.exceedsQuota(totalSize)) {
 			throw new AttachmentSizeTooBigException(I18n.getMessage("Attachments.tooBig", 
 					new Integer[] { Integer.valueOf(quotaLimit.getSizeInBytes() / 1024), 
-					Integer.valueOf((int)totalSize / 1024) }));			
+					Integer.valueOf((int)totalSize / 1024) }));
 		}
 	}
 
@@ -212,39 +224,39 @@ public class AttachmentCommon
 		String realName = origRealName;
 		String separator = "/";
 		int index = realName.lastIndexOf(separator);
-		
+
 		if (index == -1) {
 			separator = "\\";
 			index = realName.lastIndexOf(separator);
 		}
-		
+
 		if (index > -1) {
 			realName = realName.substring(index + 1);
 		}
-		
+
 		return realName;
 	}
-	
+
 	public void insertAttachments(final Post post)
 	{
 		if (!this.canProceed) {
 			return;
 		}
-		
+
 		//post.hasAttachments(this.filesToSave.size() > 0);
-		
+
 		for (Iterator<Map.Entry<UploadUtils, Attachment>>  iter = this.filesToSave.entrySet().iterator(); iter.hasNext(); ) {
 			Map.Entry<UploadUtils, Attachment> entry = iter.next();
 			Attachment attachment = entry.getValue();
 			attachment.setPostId(post.getId());
-			
+
 			String path = SystemGlobals.getValue(ConfigKeys.ATTACHMENTS_STORE_DIR) 
 				+ "/" 
 				+ attachment.getInfo().getPhysicalFilename();
-			
+
 			this.attachmentDao.addAttachment(attachment);
 			entry.getKey().saveUploadedFile(path);
-			
+
 			if (this.shouldCreateThumb(attachment)) {
 				this.createSaveThumb(path);
 			}
@@ -252,7 +264,7 @@ public class AttachmentCommon
 			new StatsEvent("File upload", entry.getKey().getOriginalName()).record();
 		}
 	}
-	
+
 	private boolean shouldCreateThumb(final Attachment attachment) {
 		String extension = attachment.getInfo().getExtension().getExtension().toLowerCase();
 		if (SystemGlobals.getBoolValue(ConfigKeys.ATTACHMENTS_IMAGES_CREATE_THUMB)
@@ -274,7 +286,7 @@ public class AttachmentCommon
         }
         return false;
 	}
-	
+
 	private void createSaveThumb(final String path) {
 		try {
 			BufferedImage image = ImageUtils.resizeImage(path, ImageUtils.IMAGE_JPEG, 
@@ -286,74 +298,74 @@ public class AttachmentCommon
 			LOGGER.error(e.toString(), e);
 		}
 	}
-	
+
 	public QuotaLimit getQuotaLimit(final int userId)
 	{
 		QuotaLimit ql = new QuotaLimit();
 		User user = DataAccessDriver.getInstance().newUserDAO().selectById(userId);
-		
+
 		for (Group group : user.getGroupsList()) {
 			QuotaLimit l = this.attachmentDao.selectQuotaLimitByGroup(group.getId());
 			if (l == null) {
 				continue;
 			}
-			
+
 			if (l.getSizeInBytes() > ql.getSizeInBytes()) {
 				ql = l;
 			}
 		}
-		
+
 		if (ql.getSize() == 0) {
 			return null;
 		}
-		
+
 		return ql;
 	}
-	
+
 	public void editAttachments(final int postId, final int forumId)
 	{
 		// Allow removing the attachments at least
 		AttachmentDAO am = DataAccessDriver.getInstance().newAttachmentDAO();
-		
+
 		// Check for attachments to remove
 		List<String> deleteList = new ArrayList<>();
 		String[] delete = null;
 		String s = this.request.getParameter("delete_attach");
-		
+
 		if (s != null) {
 			delete = s.split(",");
 		}
-		
+
 		if (delete != null) {
 			for (int i = 0; i < delete.length; i++) {
 				if (delete[i] != null && !delete[i].equals("")) {
 					int id = Integer.parseInt(delete[i]);
 					Attachment a = am.selectAttachmentById(id);
-					
+
 					am.removeAttachment(id, postId);
-					
+
 					String filename = SystemGlobals.getValue(ConfigKeys.ATTACHMENTS_STORE_DIR)
 						+ "/" + a.getInfo().getPhysicalFilename();
-					
+
 					File f = new File(filename);
-					
+
 					if (f.exists()) {
 						boolean result = f.delete();
 						if (result != true) {
 							LOGGER.error("Delete file failed: " + f.getName());
 						}
 					}
-					
+
 					// Check if we have a thumb to delete
 					f = new File(filename + "_thumb");
-					
+
 					if (f.exists()) {
 						boolean result = f.delete();
 						if (result != true) {
 							LOGGER.error("Delete thumb file failed: " + f.getName());
 						}
 					}
-					
+
 					// Remove the empty parent directory
 					File parent = f.getParentFile();
 					if (parent != null && ArrayUtils.nullToEmpty(parent.list()).length == 0) {
@@ -372,30 +384,30 @@ public class AttachmentCommon
 					}
 				}
 			}
-			
+
 			deleteList = Arrays.asList(delete);
 		}
-		
+
 		if (!SecurityRepository.canAccess(SecurityConstants.PERM_ATTACHMENTS_ENABLED, 
 				Integer.toString(forumId))
 				&& !SecurityRepository.canAccess(SecurityConstants.PERM_ATTACHMENTS_DOWNLOAD)) {
 			return;
 		}
-		
+
 		// Update
 		String[] attachIds = null;
 		s = this.request.getParameter("edit_attach_ids");
 		if (s != null) {
 			attachIds = s.split(",");
 		}
-		
+
 		if (attachIds != null) {
 			for (int i = 0; i < attachIds.length; i++) {
 				if (deleteList.contains(attachIds[i]) 
 						|| attachIds[i] == null || attachIds[i].equals("")) {
 					continue;
 				}
-				
+
 				int id = Integer.parseInt(attachIds[i]);
 				Attachment a = am.selectAttachmentById(id);
 				a.getInfo().setComment(this.request.getParameter("edit_comment_" + id));
@@ -404,20 +416,20 @@ public class AttachmentCommon
 			}
 		}
 	}
-	
+
 	private String makeStoreFilename(AttachmentInfo attInfo)
 	{
 		Calendar cal = new GregorianCalendar();
 		cal.setTimeInMillis(System.currentTimeMillis());
 		cal.get(Calendar.YEAR);
-		
+
 		int year = Calendar.getInstance().get(Calendar.YEAR);
 		int month = Calendar.getInstance().get(Calendar.MONTH) + 1;
 		int day = Calendar.getInstance().get(Calendar.DAY_OF_MONTH);
-		
+
 		StringBuilder dir = new StringBuilder(256);
 		dir.append(year).append('/').append(month).append('/').append(day).append('/');
-		
+
 		File path = new File(SystemGlobals.getValue(ConfigKeys.ATTACHMENTS_STORE_DIR) + "/" + dir); 
 		// check if we have the directory already
 		if (!path.exists()) {
@@ -425,8 +437,8 @@ public class AttachmentCommon
 			if (!result) {
 				LOGGER.error("Create directory failed: " + SystemGlobals.getValue(ConfigKeys.ATTACHMENTS_STORE_DIR) + "/" + dir);
 			}
-		}		
-		
+		}
+
 		return dir
 			.append(Hash.md5(attInfo.getRealFilename() + System.currentTimeMillis() + SystemGlobals.getValue(ConfigKeys.USER_HASH_SEQUENCE) + new SecureRandom().nextInt(999999)))
 			.append('_')
@@ -436,7 +448,7 @@ public class AttachmentCommon
 			.append('_')
 			.toString();
 	}
-	
+
 	public List<Attachment> getAttachments(final int postId, final int forumId)
 	{
 		if (!SecurityRepository.canAccess(SecurityConstants.PERM_ATTACHMENTS_DOWNLOAD)
@@ -444,10 +456,10 @@ public class AttachmentCommon
 						Integer.toString(forumId))) {
 			return new ArrayList<>();
 		}
-		
+
 		return this.attachmentDao.selectAttachments(postId);
 	}
-	
+
 	public boolean isPhysicalDownloadMode(final int extensionGroupId) 
 	{
 		return this.attachmentDao.isPhysicalDownloadMode(extensionGroupId);
@@ -458,11 +470,11 @@ public class AttachmentCommon
 		// Attachments
 		List<Attachment> attachments = DataAccessDriver.getInstance().newAttachmentDAO().selectAttachments(postId);
 		StringBuilder attachIds = new StringBuilder();
-		
+
 		for (Attachment a : attachments) {
 			attachIds.append(a.getId()).append(',');
 		}
-		
+
 		this.request.addOrReplaceParameter("delete_attach", attachIds.toString());
 		this.editAttachments(postId, forumId);
 	}

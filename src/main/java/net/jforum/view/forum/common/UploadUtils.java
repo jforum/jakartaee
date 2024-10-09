@@ -43,6 +43,7 @@
 package net.jforum.view.forum.common;
 
 import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
@@ -52,32 +53,66 @@ import net.jforum.exceptions.ForumException;
 
 /**
  * @author Rafael Steil
+ * @author Ulf Dittmer (extended to handle POP3 attachments)
  */
 public class UploadUtils
 {
 	private FileItem item;
+	private byte[] bytes;
+	private String fileName;
+	private String mimeType;
 	private String extension = "";
+	private boolean isFileItem;
 
 	public UploadUtils(FileItem item)
 	{
 		this.item = item;
+		this.isFileItem = true;
+	}
+
+	public UploadUtils (String fileName, String mimeType, byte[] bytes)
+	{
+		this.fileName = fileName;
+		this.mimeType = mimeType;
+		this.bytes = bytes;
+		this.isFileItem = false;
 	}
 
 	public String getExtension()
 	{
 		if (this.extension == null || this.extension.equals("")) {
-			this.extension = this.item.getName().substring(this.item.getName().lastIndexOf('.') + 1);
+			if (isFileItem) {
+				this.extension = this.item.getName().substring(this.item.getName().lastIndexOf('.') + 1);
+			} else {
+				this.extension = this.fileName.substring(this.fileName.lastIndexOf('.') + 1);
+			}
 		}
 
 		return this.extension;
 	}
 
 	public String getOriginalName() {
-		return item.getName();
+		if (isFileItem) {
+			return item.getName();
+		} else {
+			return fileName;
+		}
 	}
 
 	public byte[] getBytes() {
-		return item.get();
+		if (isFileItem) {
+			return item.get();
+		} else {
+			return bytes;
+		}
+	}
+
+	public String getMimeType() {
+		if (isFileItem) {
+			return item.getContentType();
+		} else {
+			return mimeType;
+		}
 	}
 
 	public void saveUploadedFile(String filename) 
@@ -86,7 +121,7 @@ public class UploadUtils
 		FileOutputStream outputStream = null;
 
 		try {
-			inputStream = new BufferedInputStream(this.item.getInputStream());
+			inputStream = new BufferedInputStream(isFileItem ? this.item.getInputStream() : new ByteArrayInputStream(this.bytes));
 			outputStream = new FileOutputStream(filename);
 
 			int c;

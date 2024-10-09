@@ -42,13 +42,14 @@
  */
 package net.jforum.api.integration.mail.pop;
 
-import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import net.jforum.dao.DataAccessDriver;
 import net.jforum.entities.MailIntegration;
+import net.jforum.util.preferences.ConfigKeys;
+import net.jforum.util.preferences.SystemGlobals;
 
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
@@ -64,12 +65,16 @@ public class POPListener implements Job
 	private static final Logger LOGGER = Logger.getLogger(POPListener.class);
 	private static final Lock lock = new ReentrantLock();
 	protected transient POPConnector connector = new POPConnector();
-	
+
 	/**
 	 * @see org.quartz.Job#execute(org.quartz.JobExecutionContext)
 	 */
 	@Override public void execute(final JobExecutionContext jobContext) throws JobExecutionException
 	{
+		final boolean isEnabled = SystemGlobals.getBoolValue(ConfigKeys.MAIL_POP3_INTEGRATION_ENABLED);
+		if (! isEnabled)
+			return;
+
 		if (! lock.tryLock()) {
 			if (LOGGER.isDebugEnabled()) {
 				LOGGER.debug("Already working. Leaving for now.");
@@ -81,9 +86,7 @@ public class POPListener implements Job
 			final List<MailIntegration> integrationList = DataAccessDriver.getInstance().newMailIntegrationDAO().findAll();
 			final POPParser parser = new POPParser();
 
-			for (final Iterator<MailIntegration> iter = integrationList.iterator(); iter.hasNext(); ) {
-				final MailIntegration integration = iter.next();
-
+			for (MailIntegration integration : integrationList) {
 				connector.setMailIntegration(integration);
 
 				try {

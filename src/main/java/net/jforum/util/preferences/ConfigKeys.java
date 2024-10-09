@@ -198,6 +198,7 @@ public final class ConfigKeys
 
 	public static final String MAIL_POP3_DEBUG_KEEP_MESSAGES = "mail.pop3.debug.keep.messages";
 	public static final String MAIL_POP3_INTEGRATION_ENABLED = "mail.pop3.integration.enabled";
+	public static final String MAIL_POP3_ATTACHMENTS = "mail.pop3.integration.attachments";
 	public static final String MAIL_POP3_DISABLETOP = "mail.pop3.disabletop";
 
 	public static final String MAIL_SMTP_AUTH = "mail.smtp.auth";

@@ -756,6 +756,38 @@ function testEmail()
 	</td>
 </tr>
 
+<!-- Mail API -->
+<tr>
+	<td class="catsides" colspan="2"><span class="gen"><b>${I18n.getMessage("Config.Form.MailApi")}</b></span></td>
+</tr>
+<tr>
+	<td class="row1" width="38%"><span class="gen">${I18n.getMessage("Config.Form.MailApi.Enabled")}</span></td>
+	<td class="row1" width="38%">
+		<select name="p_mail.pop3.integration.enabled">
+			<option value="false" <#if config.getProperty("mail.pop3.integration.enabled") == "false">selected="selected"</#if>>${I18n.getMessage("False")}</option>
+			<option value="true" <#if config.getProperty("mail.pop3.integration.enabled") == "true">selected="selected"</#if>>${I18n.getMessage("True")}</option>
+		</select>
+	</td>
+</tr>
+<tr>
+	<td class="row1" width="38%"><span class="gen">${I18n.getMessage("Config.Form.MailApi.Attachments")}</span></td>
+	<td class="row1" width="38%">
+		<select name="p_mail.pop3.integration.attachments">
+			<option value="false" <#if config.getProperty("mail.pop3.integration.attachments") == "false">selected="selected"</#if>>${I18n.getMessage("False")}</option>
+			<option value="true" <#if config.getProperty("mail.pop3.integration.attachments") == "true">selected="selected"</#if>>${I18n.getMessage("True")}</option>
+		</select>
+	</td>
+</tr>
+<tr>
+	<td class="row1" width="38%"><span class="gen">${I18n.getMessage("Config.Form.MailApi.Keep")}</span></td>
+	<td class="row1" width="38%">
+		<select name="p_mail.pop3.debug.keep.messages">
+			<option value="false" <#if config.getProperty("mail.pop3.debug.keep.messages") == "false">selected="selected"</#if>>${I18n.getMessage("False")}</option>
+			<option value="true" <#if config.getProperty("mail.pop3.debug.keep.messages") == "true">selected="selected"</#if>>${I18n.getMessage("True")}</option>
+		</select>
+	</td>
+</tr>
+
 <tr>
 	<td class="catsides" colspan="2" align="center"><input type="submit" value="${I18n.getMessage("Update")}" class="mainoption" />
 	</td>

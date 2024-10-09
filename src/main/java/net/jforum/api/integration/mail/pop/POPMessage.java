@@ -46,10 +46,16 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Base64;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import jakarta.mail.Header;
 import jakarta.mail.Message;
@@ -57,22 +63,39 @@ import jakarta.mail.MessagingException;
 import jakarta.mail.Multipart;
 import jakarta.mail.Part;
 import jakarta.mail.internet.InternetAddress;
+import jakarta.mail.internet.MimeBodyPart;
 
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.safety.Safelist;
+
 import net.jforum.exceptions.MailException;
+import net.jforum.util.preferences.ConfigKeys;
+import net.jforum.util.preferences.SystemGlobals;
 
 /**
  * Represents a pop message. 
  * @author Rafael Steil
+ * @author Ulf Dittmer (attachment support)
  */
 public class POPMessage
 {
 	private static final Logger LOGGER = Logger.getLogger(POPMessage.class);
-	
+
 	private static final String IN_REPLY_TO = "In-Reply-To";
 	private static final String REFERENCES = "References";
-	
+
+	// Some mailers (like Yahoo) have a strange way of encoding the file name, using Base64 or URL-encoding
+	// =?UTF-8?b?TGFuZGhhdXMgSGltbWVscGZvcnQucGRm?=
+	// =?UTF-8?b?c2h1dHRlcnN0b2NrLmpwZw==?=
+	// =?UTF-8?Q?upload=5Fwith=5Fumla?= =?UTF-8?Q?uts=5Fa=CC=88o=CC=88u=CC=88=C3=9Fe=CC=81.jpg?=
+	// group(1) is the encoding, group(2) is the actual text, there can be multiple parts for long filenames
+	private static final Pattern filenamePat = Pattern.compile("=\\?([^\\?]*)\\?.\\?([^\\?]*)\\?=");
+
 	private String subject;
 	private Object message;
 	private transient String messageContents;
@@ -84,7 +107,8 @@ public class POPMessage
 	private transient String listEmail;
 	private Date sendDate;
 	private Map<String, String> headers;
-	
+	private ArrayList<POPAttachment> attachments;
+
 	/**
 	 * Creates a new instance based on a {@link Message}
 	 * @param message the message to convert from.
@@ -93,7 +117,7 @@ public class POPMessage
 	{
 		this.extract(message);
 	}
-	
+
 	/**
 	 * Given a {@link Message}, converts it to our internal format
 	 * @param message the message to convert
@@ -102,70 +126,74 @@ public class POPMessage
 	{
 		try {
 			this.subject = message.getSubject();
-			
+
 			this.message = message.getContent();
 			this.contentType = message.getContentType();
 			this.sender = ((InternetAddress)message.getFrom()[0]).getAddress();
 			this.listEmail = ((InternetAddress)message.getAllRecipients()[0]).getAddress();
 			this.sendDate = message.getSentDate();
-				
+
 			if (message.getReplyTo().length > 0) {
 				this.replyTo = ((InternetAddress)message.getReplyTo()[0]).getAddress();
 			}
 			else {
 				this.replyTo = this.sender;
 			}
-			
+
 			this.headers = new ConcurrentHashMap<>();
-			
+
 			for (final Enumeration<?> enumeration = message.getAllHeaders(); enumeration.hasMoreElements(); ) {
 				final Header header = (Header)enumeration.nextElement();
 				this.headers.put(header.getName(), header.getValue());
 			}
-			
+
 			if (this.headers.containsKey(IN_REPLY_TO)) {
 				this.inReplyTo = this.headers.get(IN_REPLY_TO);
 			}
-			
+
 			if (this.headers.containsKey(REFERENCES)) {
 				this.references = this.headers.get(REFERENCES);
 			}
-			
-			this.extractMessageContents(message);
+
+			// no longer used: doesn't handle attachments
+			//this.extractMessageContents(message);
+
+			this.attachments = new ArrayList<>();
+			this.processParts(message.getContent());
 		}
 		catch (Exception e) {
 			LOGGER.error(e.getMessage(), e);
 		}
 	}
-	
+/*
 	private void extractMessageContents(final Message message) throws MessagingException
 	{
 		Part messagePart = message;
-		
+
 		if (this.message instanceof Multipart) {
 			messagePart = ((Multipart)this.message).getBodyPart(0);
 		}
-		
+
 		if (contentType.startsWith("text/html")
 			|| contentType.startsWith("text/plain")
 			|| contentType.startsWith("multipart")) {
 			InputStream inputStream = null;
 			BufferedReader reader = null;
-			
+
 			try {
 				inputStream = messagePart.getInputStream();
 				inputStream.reset();
 				reader = new BufferedReader(
 					new InputStreamReader(inputStream));
-				
+
 				final StringBuilder stringBuffer = new StringBuilder(512);
 				int count = 0;
 				final char[] chr = new char[2048];
-				
+
 				while ((count = reader.read(chr)) != -1) {
 					stringBuffer.append(chr, 0, count);
 				}
-				
+
 				this.messageContents = stringBuffer.toString();
 			}
 			catch (IOException e) {
@@ -189,7 +217,69 @@ public class POPMessage
 			}
 		}
 	}
-	
+*/
+	private void processParts (Object content) throws Exception {
+		if (content instanceof Multipart) {
+			Multipart multi = ((Multipart)content);
+			int parts = multi.getCount();
+			for (int j=0; j<parts; j++) {
+				MimeBodyPart part = (MimeBodyPart)multi.getBodyPart(j);
+				if (part.getContent() instanceof Multipart) {
+					// part-within-a-part, do some recursion...
+					processParts(part.getContent());
+				} else {
+					String type = part.getContentType();
+					//LOGGER.debug("type="+type);
+					if (type.startsWith("text/plain") || type.startsWith("text/html")) {
+						// fill in message body, if it doesn't exist yet
+						if (StringUtils.isBlank(messageContents)) {
+							Object partContent = part.getContent();
+							if (partContent instanceof String) {
+								this.messageContents = (String) partContent;
+							} else if (partContent instanceof InputStream) {
+								this.messageContents = new String(IOUtils.toByteArray((InputStream) partContent));
+							}
+							// remove HTML tags if necessary
+							if (type.startsWith("text/html")) {
+								Document.OutputSettings outputSettings = new Document.OutputSettings();
+								outputSettings.prettyPrint(false);
+								this.messageContents = Jsoup.clean(messageContents, "", Safelist.none(), outputSettings);
+							}
+						}
+					} else {
+						if (SystemGlobals.getBoolValue(ConfigKeys.MAIL_POP3_ATTACHMENTS)) {
+							String fileName = part.getFileName();
+							//LOGGER.debug("fileName="+fileName);
+							Matcher matcher = filenamePat.matcher(fileName);
+							String enc = null;
+							try {
+								StringBuilder sb = new StringBuilder(fileName.length()*2);
+								while (matcher.find()) {
+									enc = matcher.group(1);
+									sb.append(matcher.group(2));
+								}
+								if (enc != null) {
+									fileName = sb.toString();
+									fileName = new String(Base64.getDecoder().decode(fileName), enc);
+								}
+							} catch (Exception ex) {
+								try {
+									String url = fileName.replaceAll("=", "%");
+									fileName = URLDecoder.decode(url, StandardCharsets.UTF_8.name());
+								} catch (Exception ex2) {
+									//LOGGER.debug("nicht URL encoded: "+ex2.getMessage());
+								}
+							}
+							POPAttachment attachment = new POPAttachment(fileName, type, IOUtils.toByteArray(part.getInputStream()));
+							attachments.add(attachment);
+							//LOGGER.debug("adding "+attachment);
+						}
+					}
+				}
+			}
+		}
+	}
+
 	public String getListEmail()
 	{
 		return this.listEmail;
@@ -209,6 +299,14 @@ public class POPMessage
 	public Map<String, String> getHeaders()
 	{
 		return this.headers;
+	}
+
+	/**
+	 * @return the attachments
+	 */
+	public ArrayList<POPAttachment> getAttachments()
+	{
+		return this.attachments;
 	}
 
 	/**
@@ -338,7 +436,7 @@ public class POPMessage
 	{
 		this.subject = subject;
 	}
-	
+
 	/**
 	 * @see java.lang.Object#toString()
 	 */
@@ -357,5 +455,29 @@ public class POPMessage
 			.append(", headers=").append(this.headers)
 			.append(']')
 			.toString();
+	}
+
+	/**
+	 * Class for encapsulating a mail attachment
+	 */
+	public class POPAttachment {
+		private String fileName;
+		private String mimeType;
+		private byte[] data;
+
+		public POPAttachment (String fileName, String mimeType, byte[] data) {
+			this.fileName = fileName;
+			this.mimeType = mimeType;
+			this.data = data;
+		}
+
+		public String getFileName() { return this.fileName; }
+		public String getMimeType() { return this.mimeType; }
+		public byte[] getData() { return this.data; }
+
+		@Override
+		public String toString() {
+			return this.fileName + ", " + this.mimeType + ", size " + this.data.length;
+		}
 	}
 }

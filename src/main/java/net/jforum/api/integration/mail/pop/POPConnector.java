@@ -45,15 +45,21 @@ package net.jforum.api.integration.mail.pop;
 import java.util.Arrays;
 import java.util.Properties;
 
-import jakarta.mail.Flags.Flag;
+import jakarta.mail.Flags;
+import jakarta.mail.Flags;
 import jakarta.mail.Folder;
 import jakarta.mail.Message;
 import jakarta.mail.Session;
 import jakarta.mail.Store;
+import jakarta.mail.internet.InternetAddress;
 
+import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
+import net.jforum.dao.DataAccessDriver;
+import net.jforum.dao.UserDAO;
 import net.jforum.entities.MailIntegration;
+import net.jforum.entities.User;
 import net.jforum.exceptions.MailException;
 import net.jforum.util.preferences.ConfigKeys;
 import net.jforum.util.preferences.SystemGlobals;
@@ -62,17 +68,16 @@ import net.jforum.util.preferences.SystemGlobals;
  * Handles the connection to the POP server.
  * 
  * @author Rafael Steil
- * @version $Id$
  */
 public class POPConnector
 {
 	private static final Logger LOGGER = Logger.getLogger(POPConnector.class);
-	
+
 	private transient Store store;
 	private transient Folder folder;
 	private transient MailIntegration mailIntegration;
 	private transient Message[] messages;
-	
+
 	/**
 	 * @param mailIntegration the {@link MailIntegration} instance with 
 	 * all the information necessary to connect to the pop server
@@ -81,7 +86,7 @@ public class POPConnector
 	{
 		this.mailIntegration = mailIntegration;
 	}
-	
+
 	/**
 	 * Lists all available messages in the pop server
 	 * @return Array of {@link Message}'s
@@ -96,11 +101,10 @@ public class POPConnector
 			throw new MailException(e);
 		}
 	}
-	
+
 	/**
 	 * Opens a connection to the pop server. 
-	 * The method will try to retrieve the <i>INBOX</i> folder in 
-	 * <i>READ_WRITE</i> mode
+	 * The method will try to retrieve the <i>INBOX</i> folder in <i>READ_WRITE</i> mode
 	 */
 	public void openConnection()
 	{
@@ -109,38 +113,41 @@ public class POPConnector
 			// fix DEBUG POP3: server doesn't support TOP, disabling it
 			props.setProperty(ConfigKeys.MAIL_POP3_DISABLETOP, SystemGlobals.getValue(ConfigKeys.MAIL_POP3_DISABLETOP));
 			final Session session = Session.getDefaultInstance(props);
-			
+
 			this.store = session.getStore(this.mailIntegration.isSsl() ? "pop3s" : "pop3");
 
 			this.store.connect(this.mailIntegration.getPopHost(), 
 					this.mailIntegration.getPopPort(), 
 					this.mailIntegration.getPopUsername(),
 					this.mailIntegration.getPopPassword());
-			
+
 			this.folder = this.store.getFolder("INBOX");
-			
+
 			if (folder == null) {
 				throw new Exception("No Inbox");
 			}
-			
+			/*
+			Flags flags = folder.getPermanentFlags();
+			LOGGER.debug("POP3 INBOX folder flags: system "+Arrays.toString(flags.getSystemFlags())+", user "+Arrays.toString(flags.getUserFlags()));
+			*/
+
 			this.folder.open(Folder.READ_WRITE);
 		}
 		catch (Exception e) {
 			throw new MailException(e);
 		}
 	}
-	
+
 	/**
 	 * Closes the connection to the pop server.
-	 * Before finishing the communication channel, all messages
-	 * are flagged for deletion.
+	 * Before finishing the communication channel, all messages are flagged for deletion.
 	 */
 	public void closeConnection()
 	{
 		final boolean deleteMessages = !SystemGlobals.getBoolValue(ConfigKeys.MAIL_POP3_DEBUG_KEEP_MESSAGES);
 		this.closeConnection(deleteMessages);
 	}
-	
+
 	/**
 	 * Closes the connection to the pop server.
 	 * @param deleteAll If true, all messages are flagged for deletion
@@ -150,10 +157,10 @@ public class POPConnector
 		if (deleteAll) {
 			this.markAllMessagesAsDeleted();
 		}
-		
+
 		if (this.folder != null) {
 			try {
-				this.folder.close(false);
+				this.folder.close(deleteAll);
 			} catch (Exception e) {
 				LOGGER.error(e.getMessage(), e);
 			}
@@ -166,7 +173,7 @@ public class POPConnector
 			}
 		}
 	}
-	
+
 	/**
 	 * Flag all messages for deletion.
 	 */
@@ -174,12 +181,16 @@ public class POPConnector
 	{
 		try {
 			if (this.messages != null) {
-				for (int i = 0; i < this.messages.length; i++) {
-					this.messages[i].setFlag(Flag.DELETED, true);
+				UserDAO userDao = DataAccessDriver.getInstance().newUserDAO();
+				for (Message msg : messages) {
+					// don't delete message if the user is unknown
+					User user = userDao.findByEmail(((InternetAddress) msg.getFrom()[0]).getAddress());
+					if (user != null) {
+						msg.setFlag(Flags.Flag.DELETED, true);
+					}
 				}
 			}
-		}
-		catch (Exception e) {
+		} catch (Exception e) {
 			throw new MailException(e);
 		}
 	}

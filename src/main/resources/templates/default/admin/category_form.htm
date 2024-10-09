@@ -31,14 +31,13 @@ function checkGroups()
 	<tr>
 		<th class="thhead" valign="middle" colspan="2">${I18n.getMessage("Category.Form.Title")}</th>
 	</tr>
-
 	<tr>
-		<td class="row1" width="38%"><span class="gen">${I18n.getMessage("Category.Form.CategoryName")}</span></td>
-		<td class="row2"><input type="text" class="post" style="width: 200px" maxlength="150" size="25" name="category_name" value="<#if category?exists>${category.name?html}</#if>" /></td>
+		<td class="row1" width="25%"><span class="gen">${I18n.getMessage("Category.Form.CategoryName")}</span></td>
+		<td class="row2"><input type="text" class="post" maxlength="150" size="40" name="category_name" value="<#if category?exists>${category.name?html}</#if>" /></td>
 	</tr>
 
 	<tr>
-		<td class="row1" width="38%"><span class="gen">${I18n.getMessage("Category.Form.Moderate")}</span></td>
+		<td class="row1" width="25%"><span class="gen">${I18n.getMessage("Category.Form.Moderate")}</span></td>
 		<td class="row2">
 			<span class="gensmall">
 			<input class="post" type="radio" name="moderate" value="0" <#if category?exists><#if !category.isModerated()>checked="checked"</#if><#else>checked="checked"</#if>/>&nbsp;${I18n.getMessage("User.no")}&nbsp;&nbsp;
