@@ -42,7 +42,10 @@
  */
 package net.jforum.api.integration.mail.pop;
 
+import java.util.Collection;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.lang3.StringUtils;
@@ -70,10 +73,12 @@ public class POPPostAction
 {
 	private static final Logger LOGGER = Logger.getLogger(POPPostAction.class);
 
-	public void insertMessages (final POPParser parser)
+	// returns a collection of message numbers that have been successfully imported
+	public Collection<Integer> insertMessages (final POPParser parser)
 	{
 		final long currentTimestamp = System.currentTimeMillis();
 		int counter = 0;
+		Set<Integer> imported = new HashSet<>();
 
 		try {
 			final JForumExecutionContext executionContext = JForumExecutionContext.get();
@@ -111,6 +116,11 @@ public class POPPostAction
 					SessionFacade.setAttribute(ConfigKeys.REQUEST_IGNORE_CAPTCHA, "1");
 
 					this.insertMessage(message, user);
+					imported.add(message.getMessageNumber());
+					LOGGER.debug("new forum message: "+message.getSubject());
+				} catch (Exception ex) {
+					LOGGER.error("problem importing message from "+message.getSender());
+					ex.printStackTrace();
 				} finally {
 					SessionFacade.remove(sessionId);
 				}
@@ -119,6 +129,8 @@ public class POPPostAction
 		finally {
 			JForumExecutionContext.finish();
 		}
+
+		return imported;
 	}
 
 	/**

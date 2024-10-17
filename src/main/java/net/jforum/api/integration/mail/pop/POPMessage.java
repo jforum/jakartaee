@@ -96,9 +96,9 @@ public class POPMessage
 	// group(1) is the encoding, group(2) is the actual text, there can be multiple parts for long filenames
 	private static final Pattern filenamePat = Pattern.compile("=\\?([^\\?]*)\\?.\\?([^\\?]*)\\?=");
 
-	private String subject;
+	private String subject = "";
 	private Object message;
-	private transient String messageContents;
+	private transient String messageContents = "";
 	private String sender;
 	private String replyTo;
 	private String references;
@@ -107,6 +107,7 @@ public class POPMessage
 	private transient String listEmail;
 	private Date sendDate;
 	private Map<String, String> headers;
+	private int msgNumber;
 	private ArrayList<POPAttachment> attachments;
 
 	/**
@@ -132,6 +133,7 @@ public class POPMessage
 			this.sender = ((InternetAddress)message.getFrom()[0]).getAddress();
 			this.listEmail = ((InternetAddress)message.getAllRecipients()[0]).getAddress();
 			this.sendDate = message.getSentDate();
+			this.msgNumber = message.getMessageNumber();
 
 			if (message.getReplyTo().length > 0) {
 				this.replyTo = ((InternetAddress)message.getReplyTo()[0]).getAddress();
@@ -272,7 +274,7 @@ public class POPMessage
 							}
 							POPAttachment attachment = new POPAttachment(fileName, type, IOUtils.toByteArray(part.getInputStream()));
 							attachments.add(attachment);
-							//LOGGER.debug("adding "+attachment);
+							LOGGER.debug("reading "+attachment);
 						}
 					}
 				}
@@ -435,6 +437,11 @@ public class POPMessage
 	public void setSubject(final String subject)
 	{
 		this.subject = subject;
+	}
+
+	public int getMessageNumber()
+	{
+		return this.msgNumber;
 	}
 
 	/**

@@ -52,7 +52,7 @@ th.thbottom, td.catbottom									{ border-bottom-style:	solid; }
 th.thhead, td.cathead { font-size: 12px; }
 th.thsides { height: 12px; }
 
-.maintitle, .boardtitle { font-weight: bold; font-size: 18px; color: #000000; line-height: 120%; font-family: "trebuchet ms",verdana, arial, helvetica, sans-serif; text-decoration: none }
+.maintitle, .boardtitle { font-weight: bold; font-size: 18px; color: #000000; line-height: 120%; font-family: verdana, arial, helvetica, sans-serif; text-decoration: none }
 .boardtitle { font-size: 22px; }
 
 .gen, .poll { font-size: 12px }

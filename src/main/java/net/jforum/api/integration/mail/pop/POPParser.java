@@ -67,7 +67,12 @@ public class POPParser
 			this.messages.add(message);
 
 			if (LOGGER.isDebugEnabled()) {
-				LOGGER.debug("Retrieved message " + message);
+				LOGGER.debug(String.format("received ''%s'' from %s sent on %s",
+								message.getSubject(), 
+								message.getSender(),
+								message.getSendDate().toString()));
+// this generates to much output
+//				LOGGER.debug("Retrieved message " + message);
 			}
 		}
 	}

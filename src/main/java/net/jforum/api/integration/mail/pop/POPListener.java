@@ -42,6 +42,7 @@
  */
 package net.jforum.api.integration.mail.pop;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -89,6 +90,8 @@ public class POPListener implements Job
 			for (MailIntegration integration : integrationList) {
 				connector.setMailIntegration(integration);
 
+				Collection<Integer> imported = null;
+
 				try {
 					if (LOGGER.isDebugEnabled()) {
 						LOGGER.debug("Going to check " + integration);
@@ -98,10 +101,10 @@ public class POPListener implements Job
 					parser.parseMessages(connector);
 
 					final POPPostAction postAction = new POPPostAction();
-					postAction.insertMessages(parser);
+					imported = postAction.insertMessages(parser);
 				}
 				finally {
-					connector.closeConnection();
+					connector.closeConnection(imported);
 				}
 			}
 		} finally {

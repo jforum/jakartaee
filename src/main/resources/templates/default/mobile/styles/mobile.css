@@ -49,13 +49,28 @@ a:hover  { color: #dd6900; text-decoration: underline; }
 
 .mobileForumTitle { padding: 5px; }
 
-.maintitle{ font-weight: bold; font-size: 125%; color: #000000; line-height: 120%; font-family: "trebuchet ms",verdana, arial, helvetica, sans-serif; text-decoration: none }
+.maintitle{
+	font-weight: bold;
+	font-size: 125%;
+	color: #000000;
+	line-height: 120%;
+	font-family: verdana, arial, helvetica, sans-serif;
+	text-decoration: none
+}
 
 .center { text-align: center }
 
 .errorMessage { color : #ff0000; font-size: 1.1em}
 
 .topictitle { font-weight: bold; color: #000000; }
+
+.announcementBar {
+    font-weight: bold;
+    font-family: sans-serif;
+    font-size: small;
+	padding-bottom: 20px;
+	padding-left: 20px;
+}
 
 /* quote */
 blockquote {

@@ -43,7 +43,10 @@
 package net.jforum.api.integration.mail.pop;
 
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.Properties;
+import java.util.Set;
 
 import jakarta.mail.Flags;
 import jakarta.mail.Flags;
@@ -140,22 +143,22 @@ public class POPConnector
 
 	/**
 	 * Closes the connection to the pop server.
-	 * Before finishing the communication channel, all messages are flagged for deletion.
+	 * Before finishing the communication channel, all messages that have been imported are flagged for deletion.
 	 */
-	public void closeConnection()
+	public void closeConnection(Collection<Integer> imported)
 	{
 		final boolean deleteMessages = !SystemGlobals.getBoolValue(ConfigKeys.MAIL_POP3_DEBUG_KEEP_MESSAGES);
-		this.closeConnection(deleteMessages);
+		this.closeConnection(deleteMessages, imported);
 	}
 
 	/**
 	 * Closes the connection to the pop server.
 	 * @param deleteAll If true, all messages are flagged for deletion
 	 */
-	public void closeConnection(final boolean deleteAll)
+	public void closeConnection(final boolean deleteAll, final Collection<Integer> imported)
 	{
 		if (deleteAll) {
-			this.markAllMessagesAsDeleted();
+			this.markAllMessagesAsDeleted(imported);
 		}
 
 		if (this.folder != null) {
@@ -177,7 +180,7 @@ public class POPConnector
 	/**
 	 * Flag all messages for deletion.
 	 */
-	private void markAllMessagesAsDeleted()
+	private void markAllMessagesAsDeleted(final Collection<Integer> imported)
 	{
 		try {
 			if (this.messages != null) {
@@ -185,8 +188,9 @@ public class POPConnector
 				for (Message msg : messages) {
 					// don't delete message if the user is unknown
 					User user = userDao.findByEmail(((InternetAddress) msg.getFrom()[0]).getAddress());
-					if (user != null) {
+					if (user != null && imported.contains(msg.getMessageNumber())) {
 						msg.setFlag(Flags.Flag.DELETED, true);
+						LOGGER.debug("deleting mail "+msg.getSubject());
 					}
 				}
 			}

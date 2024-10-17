@@ -1,5 +1,9 @@
 <#include "header.htm"/>
- 
+
+<#if announcement?exists && announcement?length != 0>
+	<div class="announcementBar">${announcement}</div>
+</#if>
+
 <#list allCategories as category>
   <div class="cattitle mobilelist">${category.name?html}</div>
 
