@@ -385,22 +385,13 @@ public class ControllerUtils
 			cookie.setPath(contextPath);
 		}
 
-		try {
-			String version = SystemGlobals.getValue("servlet.version"); // will be of the form "3.0"
-			int majorVersion = Integer.parseInt(version.substring(0, version.indexOf(".")));
-			if (majorVersion >= 3) {
-				// setHttpOnly was introduced in Servlet API 3.0
-				Class<Cookie> cookieClass = javax.servlet.http.Cookie.class;
-				Method httpOnlyMethod = cookieClass.getMethod("setHttpOnly", new Class[] {boolean.class});
-				httpOnlyMethod.invoke(cookie, new Object[] {Boolean.TRUE});
-			}
-		} catch (Exception ex) {
-			LOGGER.warn("Could not set httpOnly for cookie '"+name+"': "+ex.getMessage());
-		}
+		cookie.setHttpOnly(true);
+		if (SystemGlobals.getValue(ConfigKeys.FORUM_LINK).startsWith("https"))
+			cookie.setSecure(true);
 
 		JForumExecutionContext.getResponse().addCookie(cookie);
 	}
-	
+
 	/**
 	 * Template method to add a cookie.
 	 * Useful to sustain when a subclass wants to add

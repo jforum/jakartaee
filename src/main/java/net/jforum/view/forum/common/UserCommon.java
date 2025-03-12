@@ -109,7 +109,6 @@ public final class UserCommon
 
 		user.setId(userId);
 		user.setTwitter(SafeHtml.makeSafe(request.getParameter("twitter")));
-		user.setSkype(SafeHtml.makeSafe(request.getParameter("skype")));
 		user.setFrom(SafeHtml.makeSafe(request.getParameter("location")));
 		user.setOccupation(checkForSpam(request.getParameter("occupation"), isAdmin));
 		user.setInterests(checkForSpam(request.getParameter("interests"), isAdmin));

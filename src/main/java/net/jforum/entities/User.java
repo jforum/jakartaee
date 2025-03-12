@@ -97,7 +97,6 @@ public class User implements Serializable
 	private String webSite;
 	private String from;
 	private String signature;
-	private String skype; 
 	private String occupation;
 	private String interests;
 	private String biography;
@@ -628,20 +627,6 @@ public class User implements Serializable
 	 */
 	public void setWebSite(String webSite) {
 		this.webSite = webSite;
-	}
-
-	/**
-	 * @return the Skype ID
-	 */
-	public String getSkype() {
-		return this.skype;
-	}
-
-	/**
-	 * @param string
-	 */
-	public void setSkype(String string) {
-		this.skype = string;
 	}
 
 	/**

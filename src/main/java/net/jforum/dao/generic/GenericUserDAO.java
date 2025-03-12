@@ -224,7 +224,6 @@ public class GenericUserDAO extends AutoKeys implements UserDAO
 		user.setUsername(rs.getString("username"));
 		user.setLang(rs.getString("user_lang"));
 		user.setAttachSignatureEnabled(rs.getInt("user_attachsig") == 1);
-		user.setSkype(rs.getString("user_skype"));
 		user.setActive(rs.getInt("user_active"));
 		user.setKarma(new KarmaStatus(user.getId(), rs.getDouble("user_karma")));
 		user.setNotifyPrivateMessagesEnabled(rs.getInt("user_notify_pm") == 1);
@@ -280,7 +279,7 @@ public class GenericUserDAO extends AutoKeys implements UserDAO
 			pstmt.setString(11, user.getOccupation());
 			pstmt.setString(12, user.getSignature());
 			pstmt.setString(13, user.getWebSite());
-			pstmt.setString(14, user.getSkype());
+			pstmt.setString(14, "");
 			pstmt.setString(15, user.getPassword());
 			pstmt.setInt(16, user.isViewEmailEnabled() ? 1 : 0);
 			pstmt.setInt(17, user.isNotifyOnMessagesEnabled() ? 1 : 0);
